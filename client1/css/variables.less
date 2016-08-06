@@ -1,0 +1,37 @@
+/**
+  基础样式变量.
+**/
+/* 文件路径 */
+@img-path: "../img";
+/* Color */
+@background-color: #ccc;
+@color1:#00AEEF;  //dark color(filtered color)
+@color2:#9ecae1;
+
+@title-background:rgba(170,170,170,0.05);
+@title-text-color:#aaaaaa;
+/* Div Size */
+@left-width : 60%;
+@mid-width: 75px;
+@right-width:calc(~"40% - "@mid-width);// 1- leftwidth
+@right-left-margin:calc(~"60% + "@mid-width);
+@app-height:calc(~'100% - 40px');
+// @app-height:100%;
+//right
+@plot-height:15%;
+
+@scatter-container-height:calc(~"100% - 3*@{plot-height}");
+@scatter-title-height: 25px;
+@scatter-view-height:calc(~"100% - @{scatter-title-height}");
+// @scatter-view-height:;
+@mid-btn-height:83.5px;
+@mid-stat-height:253px;
+// @mid-leg-height:calc(~"(100% - @{mid-stat-height})/2 - @{mid-btn-height}");
+@mid-leg-height:calc(~"(100% - @{mid-stat-height} - @{mid-btn-height}*2)");
+
+/* Div Style */
+@border:1px solid @color1;
+
+
+/* font */
+@font-family1: Microsoft Yahei;

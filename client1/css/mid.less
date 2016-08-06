@@ -1,0 +1,57 @@
+@select_border_color:#2060d5;
+@default_border_color:#dcdcdc;
+#mid{
+    controlTitle{
+        font-size:12px;
+    }
+    .title{
+        width: 100%;
+        background:@title-background;
+        text {
+            color:@title-text-color;
+        }
+        padding-left:3px;
+    }
+    .statCount {
+            width: 100%;
+            text-align: center;
+            vertical-align: middle;
+    }
+    .button {
+        border-left:2px  solid @default_border_color;
+        padding-left: 3px;
+        margin-left:10px;
+        vertical-align: middle;
+        cursor:pointer;
+        display:block;
+    }
+    .button.active{
+        border-left:2px  solid @select_border_color;
+        padding-left: 3px;
+        margin-left:10px;
+        vertical-align: middle;
+        cursor:pointer;
+        display:block;
+    }
+    .button.hover{
+        border:2px  solid @select_border_color;
+        padding-left: 3px;
+        margin-left:10px;
+        vertical-align: middle;
+        cursor:pointer;
+        background:@select_border_color;
+        color:#ffffff;
+        display:block;
+    }
+    .buttonGroup {
+
+    }
+
+    #stat-view{
+        position:relative;
+        width: 100%;
+        height:@mid-stat-height;
+        // border:@border;
+
+    }
+}

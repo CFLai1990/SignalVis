@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Signal Data Vis</title>
+    <link rel="stylesheet/less" href="css/style.less">
+    <script>
+        var less = {
+                env: 'development'
+        };
+    </script>
+    <script src="bower_components/less/dist/less.min.js"></script>
+    <script data-main="js/main" src="bower_components/requirejs/require.js"></script>
+
+
+</head>
+<body >
+<nav class="navbar navbar-default app-navbar" role="navigation">
+   <div class="navbar-header">
+      <a class="navbar-brand app-navbar-title" href="#">无线信号电磁态势可视化</a>
+   </div>
+</nav>
+
+     <div id="signal-app" style = "position:absolute;" >
+     </div>
+
+       <!-- Loading -->
+<div class="loading" id = 'loading'>
+      <div class="back"></div>
+      <div class="logo">
+          <i class="fa fa-spinner fa-spin fa-lg"></i>
+          <span> Loading ...</span>
+      </div>
+</div>
+</body>
+</html>
