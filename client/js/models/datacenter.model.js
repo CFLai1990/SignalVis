@@ -163,7 +163,7 @@
                     }
                 }
                 self.set("signals", t_signals);
-                console.log(self.get("signals"));
+                //console.log(self.get("signals"));
                 // var t_modify = function(v_collection, v_d){
                 //     v_d.Firsttime = new Date(v_d.Firsttime);
                 //     v_collection.save(v_d);
@@ -502,6 +502,7 @@
                 filter['name'] = 'Midfrequency(MHz)';//'midfre';
                 filters.push(filter);
             }
+            console.log(filters)
             if(filters.length == 0) {
                 Variables.set("filterSignals", null);
             }

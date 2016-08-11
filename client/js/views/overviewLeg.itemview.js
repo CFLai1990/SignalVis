@@ -31,196 +31,47 @@ define([
 
         },
 
-
         onShow: function()
         {
-            console.log("12333434");
             var self = this;
-            self.margin = {top: 10, right: 20, bottom: 15, left: 30},
+            self.margin = {top: 0, right: 20, bottom: 15, left: 15},
 
             self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
             self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
-
+            
+			var aggCount = Datacenter.get("aggCount");
+            var maxCount = d3.max(d3.max(aggCount));
+            var legendElementWidth = 20;
+            
+			self.colorScale = d3.scale.quantile()
+               .domain([maxCount,1])
+               .range(colorbrewer.RdYlGn[8]);
+                            
             self.mainRegin = self.d3el.append("g")
-                          .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
-                          .attr("class","mainReginSvg");
+               .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
+               .attr("class","mainReginSvg");
+				
+            var legend = self.mainRegin.selectAll(".legend")
+                .data([1].concat(self.colorScale.quantiles()), function(d) { return d; });
 
-            var legend_height1 = 40,
-                legend_height2 = 60,
-                legend_height3 = 80,
-                legend_height4 = 100,
-                legend_height5 = 120,
-                legend_height6 = 140,
-                legend_height7 = 160,
-                legend_height8 = 180,
-                legend_height9 = 200;
+            legend.enter().append("g")
+                .attr("class", "legend");
 
-            var legend = self.mainRegin.append("g");
-
-                legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height1)
-                    .attr("stroke","none")
-                    .attr("fill","#1a9850");
-
-                 legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height2)
-                    .attr("stroke","none")
-                    .attr("fill","#66bd63");
-
-                legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height3)
-                    .attr("stroke","none")
-                    .attr("fill","#a6d96a");
-
-                 legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height4)
-                    .attr("stroke","none")
-                    .attr("fill","#d9ef8b");
-
-                 legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height5)
-                    .attr("stroke","none")
-                    .attr("fill","#fee08b");
-
-                 legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height6)
-                    .attr("stroke","none")
-                    .attr("fill","#fdae61");
-
-                legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height7)
-                    .attr("stroke","none")
-                    .attr("fill","#f46d43");
-
-                 legend.append("rect")
-                    .attr("class", "legend")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("x", -15)
-                    .attr("y", self.chartHeight - legend_height8)
-                    .attr("stroke","none")
-                    .attr("fill","#d73027");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 15)
-        .attr("fill","black")
-        .text("1");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 35)
-        .attr("fill","black")
-        .text("16");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 55)
-        .attr("fill","black")
-        .text("31");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 75)
-        .attr("fill","black")
-        .text("46");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 95)
-        .attr("fill","black")
-        .text("60");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 115)
-        .attr("fill","black")
-        .text("75");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 135)
-        .attr("fill","black")
-        .text("90");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 155)
-        .attr("fill","black")
-        .text("105");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", 10)
-        .attr("y", self.chartHeight - 175)
-        .attr("fill","black")
-        .text("119");
-
-legend.append("text")
-        .attr("class", "legendText")
-        .attr("width", 50)
-        .attr("height", 40)
-        .attr("x", -20)
-        .attr("y", self.chartHeight - 200)
-        .attr("fill","black")
-        .text("信号数量");
-
+            legend.append("rect")
+	            .attr("x", 0)
+	            .attr("y", function(d, i) { return legendElementWidth * i; })
+	            .attr("width", legendElementWidth)
+	            .attr("height", legendElementWidth)
+	            .style("fill", function(d, i) { return colorbrewer.RdYlGn[8][i]; });
+	            
+	        legend.append("text")
+	            .attr("class", "lengendText")
+	            .text(function(d) { return Math.round(d); })
+	            .style('alignment-baseline','central')
+	            .attr("x", legendElementWidth+2)
+	            .attr("y", function(d, i) { return legendElementWidth * (8-i); });
+	            
         },
-
-
+        
     }, SVGBase));
 });

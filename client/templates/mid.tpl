@@ -35,9 +35,22 @@
   <div class = "statCount">
       <text id = "carriernoiseRangeText">error</text>
   </div>
-
+  <br />
+ <div class = "title">
+  <text class = "controlTitle">聚类门限</text>
+  </div>
+  <div class = "statCount">
+      <input type="text" id="ClusterThresholdText" placeholder="Fre" style="width: 60%;float: left;">
+      <button type="submit" class="btn btn-default btn-xs">
+      	<i class="fa fa-check" aria-hidden="true"></i>
+      </button>
+  </div>
+ <br /> <br /> <br />
+ <div class = "title">
+  	<text class = "controlTitle">图例</text>
+ </div>
 </div>
-<div id = 'colorBtns-view'>
+<!--<div id = 'colorBtns-view'>
     <div id="colorBtns-title" class = "title">
         <text class = "controlTitle">颜色</text>
     </div>
@@ -46,10 +59,10 @@
           <span class="button" data-value="scope" data-tooltip="Scope">能量</span>
           <span class="button" data-value="carriernoise" data-tooltip="Carriernoise">载噪比</span>
     </div>
-</div>
+</div>-->
 <!-- <div id = 'colorLeg-view'>
 </div> -->
-<div id = 'sizeBtns-view'>
+<!--<div id = 'sizeBtns-view'>
     <div id="sizeBtns-title" class = "title">
         <text class = "controlTitle">大小</text>
     </div>
@@ -59,6 +72,6 @@
           <span class="button" data-value="scope" data-tooltip="Scope">能量</span>
           <span class="button" data-value="carriernoise" data-tooltip="Carriernoise">载噪比</span>
     </div>
-</div>
-<div id = 'sizeLeg-view'>
+</div>-->
+<div id = 'sizeLeg-view' style="top:13%">
 </div>
