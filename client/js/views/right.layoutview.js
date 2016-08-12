@@ -106,23 +106,30 @@ define([
             onShow: function(){
                 var self = this;
                 self.initHDBtns();
+                var t_bts = Datacenter.get("barcharts");
+                for(var i in t_bts){
+                    self.showChildView(i, new BarChartLayoutView({
+                        model: t_bts[i],
+                        id: i + "BarChart",
+                        theTitle: Config.get("chineseAttrNames")[i] + "分布",
+                    }))
+                }
+                // self.showChildView('bandwidth', new BarChartLayoutView({
+                //     model:Datacenter.get("bandwidthBarChart"),
+                //     id:"bandwidthBarChart",
+                //     theTitle:"分布"
+                // }));
+                // self.showChildView('scope', new BarChartLayoutView({
+                //     model:Datacenter.get("scopeBarChart"),
+                //     id:"scopeBarChart",
+                //     theTitle:"能量分布"
+                // }));
+                // self.showChildView('carriernoise', new BarChartLayoutView({
+                //     model:Datacenter.get("carriernoiseBarChart"),
+                //     id:"carriernoiseBarChart",
+                //     theTitle:"载噪比分布"
 
-                self.showChildView('bandwidth', new BarChartLayoutView({
-                    model:Datacenter.get("bandwidthBarChart"),
-                    id:"bandwidthBarChart",
-                    theTitle:"带宽分布"
-                }));
-                self.showChildView('scope', new BarChartLayoutView({
-                    model:Datacenter.get("scopeBarChart"),
-                    id:"scopeBarChart",
-                    theTitle:"能量分布"
-                }));
-                self.showChildView('carriernoise', new BarChartLayoutView({
-                    model:Datacenter.get("carriernoiseBarChart"),
-                    id:"carriernoiseBarChart",
-                    theTitle:"载噪比分布"
-
-                }));
+                // }));
                 self.showChildView('scatterplot', new HighDimensionItemView({
                     model:Datacenter.get("highdimension"),
                     id:"highdimension",

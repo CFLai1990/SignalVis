@@ -119,9 +119,10 @@ define([
         onShow: function()
         {
             var self = this;
-            self.margin = {top: 20, right: 20, bottom: 115, left: 55};
-            self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
-            self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
+            var t_width = self.$el.width(), t_height = self.$el.height();
+            self.margin = {top: t_height * 0.02, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.04};
+            self.chartWidth = t_width - self.margin.left - self.margin.right;
+            self.chartHeight = t_height * 0.60;
             self.have_zoomin = 0;
 //useful variables
             var detailSignals = Datacenter.get('signals');
@@ -296,9 +297,9 @@ define([
 		     //}
 //时间定位线 END         
 //频谱图
-                self.margin_line = {top: 520, right: 20, bottom: 30, left: 55};
+                self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_width * 0.05, left: t_height * 0.05};
                 self.Width_line = self.$el.width() - self.margin_line.left - self.margin_line.right;
-                self.Height_line = self.$el.height() - self.margin_line.top - self.margin_line.bottom;
+                self.Height_line = t_height * 0.27;
 
                 var x_line = d3.scale.linear()
                     .range([0, self.Width_line]);

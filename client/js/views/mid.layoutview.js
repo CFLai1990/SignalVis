@@ -37,7 +37,7 @@ define([
                 self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                         self.onChangeFilterSignals(filterSignals);
                 });
-                self.listenTo(Variables,"change:bandwithFilterRange", function(model,bandwithFilterRange){
+                self.listenTo(Variables,"change:bandwidthFilterRange", function(model,bandwidthFilterRange){
                         self.updateBandwithRangeText();
                 });
                 self.listenTo(Variables,"change:scopeFilterRange", function(model,scopeFilterRange){
@@ -132,16 +132,16 @@ define([
                 }
             },
             updateBandwithRangeText:function() {
-                var filterRange = Variables.get("bandwithFilterRange");
+                var filterRange = Variables.get("bandwidthFilterRange");
                 if(filterRange) {
                     var rangeText = filterRange[0].toFixed(3) +
                         " ~ " + filterRange[1].toFixed(3);
                      this.$el.find("#bandwidthRangeText").text(rangeText);
                 }
                 else {
-                    var dictArr = Datacenter.get("bandwidthDictArr");
-                    var rangeText = dictArr[0].bandwidth.toFixed(3) +
-                        " ~ " + dictArr[dictArr.length - 1].bandwidth.toFixed(3);
+                    var t_range = Datacenter.get("barcharts")["bandwidth"].get("xRange");
+                    var rangeText = t_range[0].toFixed(3) +
+                        " ~ " + t_range[1].toFixed(3);
                     this.$el.find("#bandwidthRangeText").text(rangeText);
 
                 }
@@ -154,9 +154,9 @@ define([
                      this.$el.find("#scopeRangeText").text(rangeText);
                 }
                 else {
-                    var dictArr = Datacenter.get("scopeDictArr");
-                    var rangeText = parseInt(dictArr[0].scope) +
-                        " ~ " + parseInt(dictArr[dictArr.length - 1].scope);
+                    var t_range = Datacenter.get("barcharts")["scope"].get("xRange");
+                    var rangeText = parseInt(t_range[0]) +
+                        " ~ " + parseInt(t_range[1]);
                     this.$el.find("#scopeRangeText").text(rangeText);
 
                 }
@@ -170,9 +170,9 @@ define([
                      this.$el.find("#carriernoiseRangeText").text(rangeText);
                 }
                 else {
-                    var dictArr = Datacenter.get("carriernoiseDictArr");
-                    var rangeText = parseInt(dictArr[0].carriernoise) +
-                        " ~ " + parseInt(dictArr[dictArr.length - 1].carriernoise);
+                    var t_range = Datacenter.get("barcharts")["carriernoise"].get("xRange");
+                    var rangeText = parseInt(t_range[0]) +
+                        " ~ " + parseInt(t_range[1]);
                     this.$el.find("#carriernoiseRangeText").text(rangeText);
 
                 }

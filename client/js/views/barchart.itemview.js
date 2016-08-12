@@ -49,15 +49,16 @@ define([
 
                 }
             });
-            self.listenTo(self.model,"change:mode", function(model, mode) {
-                self.switchMode();
-            });
+            // self.listenTo(self.model,"change:mode", function(model, mode) {
+            //     self.switchMode();
+            // });
 
         },
 
         switchMode: function() {
             var self = this;
             var filterBins = this.model.get("filterBins");
+            var t_yRange = self.model.get("yRange");
             if(this.model.get("mode") == "zoomin" && filterBins){
                     self.d3el.select(".barTitle")
                         .text(self.theTitle + " (局部)");
@@ -84,7 +85,7 @@ define([
                         self.yScale.domain([1,ymax]);
 
                         var tickValues = [];
-                        for(var j=0;Math.pow(10,j)<=self.model.get('ymax');j++) {
+                        for(var j=0;Math.pow(10,j)<=t_yRange[1];j++) {
                             tickValues.push(Math.pow(10,j));
                         }
                         self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
@@ -117,9 +118,9 @@ define([
                 self.d3el.select(".barTitle")
                      .text(self.theTitle + " (全局)");
                 if(self.model.get("scale") == 'linear') {
-                    self.yAxisScale.domain([self.model.get('ymin'),self.model.get('ymax')]);
+                    self.yAxisScale.domain(t_yRange);
 
-                    self.yScale.domain([self.model.get('ymin'),self.model.get('ymax')]);
+                    self.yScale.domain(t_yRange);
 
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                         .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });;
@@ -127,12 +128,12 @@ define([
                 else if(self.model.get("scale") == 'power') {
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                     formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
-                    self.yAxisScale.domain([100,self.model.get('ymax')]);
+                    self.yAxisScale.domain([100,t_yRange[1]]);
 
-                    self.yScale.domain([1,self.model.get('ymax')]);
+                    self.yScale.domain([1,t_yRange[1]]);
 
                     var tickValues = [];
-                    for(var j=2;Math.pow(10,j)<=self.model.get('ymax');j++) {
+                    for(var j=2;Math.pow(10,j)<=t_yRange[1];j++) {
                         tickValues.push(Math.pow(10,j));
                     }
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
@@ -170,6 +171,7 @@ define([
 
             self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
             self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
+            var t_range = {x: self.model.get("xRange"), y: self.model.get("yRange")};
 //Title
             self.d3el.append("text")
                         .attr("x", self.$el.width() / 2 )
@@ -180,7 +182,7 @@ define([
 //Scale
             self.binWidth = Math.floor(self.chartWidth / self.model.get("numOfBins"));
             self.xAxisScale = d3.scale.linear()
-                                        .domain([self.model.get('xmin'),self.model.get('xmax')])
+                                        .domain(t_range.x)
                                         .range([0, self.chartWidth]);
 
             self.xScale = d3.scale.linear()
@@ -189,11 +191,11 @@ define([
             if(self.model.get("scale") == 'linear') {
 
                 self.yAxisScale = d3.scale.linear()
-                                        .domain([self.model.get('ymin'),self.model.get('ymax')])
+                                        .domain(t_range.y)
                                         .range([self.chartHeight ,0]);
 
                 self.yScale = d3.scale.linear()
-                    .domain([self.model.get('ymin'),self.model.get('ymax')])
+                    .domain(t_range.y)
                     .range([0,self.chartHeight]);
 
 
@@ -201,19 +203,20 @@ define([
                     .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });;
             }
             else if(self.model.get("scale") == 'power') {
+                var ymax = self.model.get("yRange")[1];
                 var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                 formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
                 self.yAxisScale = d3.scale.log().base(10).clamp(true)
-                                        .domain([100,self.model.get('ymax')])
+                                        .domain([100,ymax])
                                         .range([self.chartHeight ,0]);
 
                 self.yScale = d3.scale.log().base(10).clamp(true)
-                    .domain([100,self.model.get('ymax')])
+                    .domain([100,ymax])
                     .range([0,self.chartHeight]);
 
 
                 var tickValues = [];
-                for(var j=2;Math.pow(10,j)<=self.model.get('ymax');j++) {
+                for(var j=2;Math.pow(10,j)<=ymax;j++) {
                     tickValues.push(Math.pow(10,j));
                 }
                 self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
@@ -269,16 +272,15 @@ define([
                                     })
                                     .on("brushend", function(){
                                         var filterRangeName = self.model.get("filterRangeName");
-                                        // console.log(filterRangeName);
                                         if(self.brush.empty()) {
                                             Variables.set(filterRangeName,null);
                                         }
                                         else {
                                             var extent = self.brush.extent();
-                                            // console.log(extent)
                                             var brushRange = []
                                             brushRange.push(extent[0]);
                                             brushRange.push(extent[1]);
+                                            console.log(filterRangeName, brushRange);
                                             Variables.set(filterRangeName,brushRange);
                                         }
                                     });

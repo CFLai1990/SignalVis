@@ -50,7 +50,7 @@ define([
                 self.set("redraw",!self.get("redraw"));
 
             });
-            self.listenTo(Variables,"change:bandwithFilterRange", function(model, bandwithFilterRange){
+            self.listenTo(Variables,"change:bandwidthFilterRange", function(model, bandwidthFilterRange){
                 self.updateX();
                 self.updateY();
                 // console.log("555555555")

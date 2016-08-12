@@ -17,7 +17,7 @@ define([
             "finishInit" : false, // whether init process finished
             //
             "mode":"zoomout", // zoomout or zoomin
-            "bandwithFilterRange":null, // null is not filter
+            "bandwidthFilterRange":null, // null is not filter
             "scopeFilterRange":null,
             "carriernoiseFilterRange":null,
             "firsttimeFilterRange":null, //

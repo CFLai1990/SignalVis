@@ -30,7 +30,14 @@ define([
                 "mark":{name: null, type: null, norm: null},
                 "SignalType":{name: null, type: null, norm: null},
             },
-
+            "barchart": {
+                "bins": 40,
+            },
+            "chineseAttrNames": {
+                "bandwidth": "带宽",
+                "scope": "能量",
+                "carriernoise": "载噪比",
+            },
         },
     }))();
 });

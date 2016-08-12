@@ -39,6 +39,7 @@
                 "bandwidthBarChart":null,
                 "scopeBarChart":null,
                 "carriernoiseBarChart":null,
+                "barcharts": {},
                 //scatterplot
                 "scatterplot":null,
                 "highdimension":null,
@@ -61,7 +62,7 @@
                         self.updateDetailSignals();
                     });
             };
-            self.listenTo(Variables,"change:bandwithFilterRange", queryFunc);
+            self.listenTo(Variables,"change:bandwidthFilterRange", queryFunc);
             self.listenTo(Variables,"change:scopeFilterRange", queryFunc);
             self.listenTo(Variables,"change:carriernoiseFilterRange", queryFunc);
             self.listenTo(Variables,"change:mode", queryFunc);
@@ -88,7 +89,7 @@
 
             $.when(readPreComputeDef).done(function(){
                 console.log('finish reading data');
-                self.setBarCharts();
+                // self.setBarCharts();
                 self.setScatterPlot();
                 self.setHighDimension();
                 self.setDetailSignals();
@@ -163,117 +164,125 @@
                     }
                 }
                 self.set("signals", t_signals);
-                //console.log(self.get("signals"));
-                // var t_modify = function(v_collection, v_d){
-                //     v_d.Firsttime = new Date(v_d.Firsttime);
-                //     v_collection.save(v_d);
-                // };
-                // self.queryFromDB('modify', {'Firsttime':{'$exists':true}}, function(){
-                // }, def, t_modify);
                 def.resolve();
             });
         },
 
         readPreCompute: function(def) {
-            var self = this, t_signals = self.get("signals");
+            var self = this, t_signals = self.get("signals");var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
+            var t_time = d3.extent(_.map(t_signals, "firsttime")),
+            t_freq = d3.extent(_.map(t_signals, "midfre"));
+            self.set("minTime",t_time[0]);
+            self.set("maxTime",t_time[1]);
+            self.set("minMidfre",t_freq[0]);
+            self.set("maxMidfre",t_freq[1]);
+            var td1 = $.Deferred(), td2 = $.Deferred(), td3 = $.Deferred(),
+            td4 = $.Deferred(), td5 = $.Deferred(), td6 = $.Deferred();
+
+            // self.queryFromDB("barchart", [{'$group':{'_id':'$Scope(dBm)', 'scope':{'$first':'$Scope(dBm)'}, 'indexs':{'$push':'$id'}}}],
+            //     function(v_d){
+            //         var bandwidthBarChart = new BarchartModel({
+            //             "attrName": v_d.attr,
+            //             "dataDictArr":self.get("bandwidthDictArr"),
+            //             "filterRangeName":"bandwidthFilterRange",
+            //             "filterDataArr":Variables.get("filterSignals"),
+            //             "scale":"power",
+            //         });
+            //         self.set("bandwidthBarChart",bandwidthBarChart);
+            //     }, td1);
+            self.setBarChart("bandwidth", "Bandwidth(dB)", "Bandwidth(dB)", "power", td1);
+            self.setBarChart("scope", "Scope(dBm)", "Scope(dBm)", "linear", td2);
+            self.setBarChart("carriernoise", "Carriernoise(dB)", "Carriernoise(dB)", "linear", td3);
+            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Scope(dBm)', 'scope':{'$first':'$Scope(dBm)'}, 'indexs':{'$push':'$id'}}}],
+            //     function(v_d){
+            //         self.set("scopeDictArr", t_sort(v_d, "scope"));
+            //     }, td1);
+            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Bandwidth(dB)', 'bandwidth':{'$first':'$Bandwidth(dB)'}, 'indexs':{'$push':'$id'}}}],
+            //     function(v_d){
+            //         self.set("bandwidthDictArr", t_sort(v_d, "bandwidth"));
+            //     }, td2);
+            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Carriernoise(dB)', 'carriernoise':{'$first':'$Carriernoise(dB)'}, 'indexs':{'$push':'$id'}}}],
+            //     function(v_d){
+            //         self.set("carriernoiseDictArr", t_sort(v_d, "carriernoise"));
+            //     }, td3);
+            self.queryFromDB("aggregate", [{'$group':{'_id':'$Firsttime', 'firsttime':{'$first':'$Firsttime'}, 'indexs':{'$push':'$id'}}}],
+                function(v_d){
+                    self.set("firsttimeDictArr", t_sort(v_d, "firsttime"));
+                }, td4);
+            self.queryFromDB("aggregate", [{'$group':{'_id':'$Midfrequency(MHz)', 'midfre':{'$first':'$Midfrequency(MHz)'}, 'indexs':{'$push':'$id'}}}],
+                function(v_d){
+                    self.set("midfreDictArr", t_sort(v_d, "midfre"));
+                }, td5);
             d3.json(Config.get("preComputeJsonPath"), function(data) {
-                // console.log(data);
                 self.set("aggCount",data.aggCount);
-                // for(var i=0;i<data.aggCount.length;i++){
-                //     if(data.aggCount[i][0] > 0)
-                //         console.log(i);
-                // }
-                // console.log(data.aggCount);
-                // console.log(data.maxTime - data.minTime);
-                // self.set("minTime",data.minTime);
-                // self.set("maxTime",data.maxTime);
-                // self.set("minMidfre",data.minMidfre);
-                // self.set("maxMidfre",data.maxMidfre);
-                // self.set("scopeDictArr",data.scopeDictArr);
-                // self.set("bandwidthDictArr",data.bandwidthDictArr);
-                // self.set("carriernoiseDictArr",data.carriernoiseDictArr);
-                // self.set('firsttimeDictArr',data.firsttimeDictArr);
-                // self.set('midfreDictArr',data.midfreDictArr);
-                var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
-                var t_time = d3.extent(_.map(t_signals, "firsttime")),
-                t_freq = d3.extent(_.map(t_signals, "midfre"));
-                self.set("minTime",t_time[0]);
-                self.set("maxTime",t_time[1]);
-                self.set("minMidfre",t_freq[0]);
-                self.set("maxMidfre",t_freq[1]);
-                var td1 = $.Deferred(), td2 = $.Deferred(), td3 = $.Deferred(),
-                td4 = $.Deferred(), td5 = $.Deferred();
-                self.queryFromDB("aggregate", [{'$group':{'_id':'$Scope(dBm)', 'scope':{'$first':'$Scope(dBm)'}, 'indexs':{'$push':'$id'}}}],
-                    function(v_d){
-                        self.set("scopeDictArr", t_sort(v_d, "scope"));
-                    }, td1);
-                self.queryFromDB("aggregate", [{'$group':{'_id':'$Bandwidth(dB)', 'bandwidth':{'$first':'$Bandwidth(dB)'}, 'indexs':{'$push':'$id'}}}],
-                    function(v_d){
-                        self.set("bandwidthDictArr", t_sort(v_d, "bandwidth"));
-                    }, td2);
-                self.queryFromDB("aggregate", [{'$group':{'_id':'$Carriernoise(dB)', 'carriernoise':{'$first':'$Carriernoise(dB)'}, 'indexs':{'$push':'$id'}}}],
-                    function(v_d){
-                        self.set("carriernoiseDictArr", t_sort(v_d, "carriernoise"));
-                    }, td3);
-                self.queryFromDB("aggregate", [{'$group':{'_id':'$Firsttime', 'firsttime':{'$first':'$Firsttime'}, 'indexs':{'$push':'$id'}}}],
-                    function(v_d){
-                        self.set("firsttimeDictArr", t_sort(v_d, "firsttime"));
-                    }, td4);
-                self.queryFromDB("aggregate", [{'$group':{'_id':'$Midfrequency(MHz)', 'midfre':{'$first':'$Midfrequency(MHz)'}, 'indexs':{'$push':'$id'}}}],
-                    function(v_d){
-                        self.set("midfreDictArr", t_sort(v_d, "midfre"));
-                    }, td5);
-
-                $.when(td1, td2, td3, td4, td5)
-                .done(function(){def.resolve();});
-                // def.resolve();
+                td6.resolve();
             });
-                // self.set("scopeDictArr",data.scopeDictArr);
-                // self.set("bandwidthDictArr",data.bandwidthDictArr);
-                // self.set("carriernoiseDictArr",data.carriernoiseDictArr);
-                // self.set('firsttimeDictArr',data.firsttimeDictArr);
-                // self.set('midfreDictArr',data.midfreDictArr);
+            $.when(td1, td2, td3, td4, td5, td6)
+            .done(function(){def.resolve();});
 
+        },
+
+        setBarChart: function(v_name, v_attr, v_key, v_scale, v_td){
+            var self = this, t_condition = [{
+                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
+            }];
+            t_condition[0]['$group'][v_key] = {'$first':"$" + v_attr};
+            self.queryFromDB("barchart", t_condition, 
+                function(v_d){
+                    console.log(v_d);
+                    var t_barchart = new BarchartModel({
+                        "attrName": v_name,
+                        "numOfBins": v_d.binNumber,
+                        "totalBins": v_d.binCount,
+                        "xRange": v_d.xRange,
+                        "yRange": v_d.yRange,
+                        "filterRangeName": v_name + "FilterRange",
+                        "scale": v_scale,
+                    });
+                    self.get("barcharts")[v_name] = t_barchart;
+                }, v_td, {
+                    key: v_key,
+                    bins: Config.get("barchart").bins,
+                });
         },
 
         setBarCharts: function() {
             var self = this;
             var bandwidthBarChart = new BarchartModel({
-                "attrName":"bandwidth",
+                "attrName":"_id",
                 "dataDictArr":self.get("bandwidthDictArr"), //[{"attr": ,"indexs":[]}] //all data
-                "filterRangeName":"bandwithFilterRange", //name of Variables
-                "filterDataArr":Variables.get("filterSignals"),
+                "filterRangeName":"bandwidthFilterRange", //name of Variables
+                // "filterDataArr":Variables.get("filterSignals"),
                 "scale":"power",
             });
             self.set("bandwidthBarChart",bandwidthBarChart);
 
             var scopeBarChart = new BarchartModel({
-                "attrName":"scope",
+                "attrName":"_id",
                 "dataDictArr":self.get("scopeDictArr"), //[{"attr": ,"indexs":[]}] //all data
                 "filterRangeName":"scopeFilterRange", //[] reference to Config
-                "filterDataArr":Variables.get("filterSignals"),
+                // "filterDataArr":Variables.get("filterSignals"),
                 "scale":"linear",
 
             });
             self.set("scopeBarChart",scopeBarChart);
 
             var carriernoiseBarChart = new BarchartModel({
-                "attrName":"carriernoise",
+                "attrName":"_id",
                 "dataDictArr":self.get("carriernoiseDictArr"), //[{"attr": ,"indexs":[]}] //all data
                 "filterRangeName":"carriernoiseFilterRange", //[] reference to Config
-                "filterDataArr":Variables.get("filterSignals"),
+                // "filterDataArr":Variables.get("filterSignals"),
                 "scale":"linear",
 
             });
             self.set("carriernoiseBarChart",carriernoiseBarChart);
-
         },
 
         setScatterPlot:function() {
             var self =this;
             var scatterplotModel = new ScatterPlotModel({
-                "xModel": self.get("bandwidthBarChart"),
-                "yModel":self.get("scopeBarChart"),
+                "xModel": self.get("barcharts")["bandwidth"],
+                "yModel":self.get("barcharts")["scope"],
                 "filterSignals": self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
@@ -296,15 +305,12 @@
             var bandwidthRange = [];
             var scopeRange = [];
             var carriernoiseRange = [];
-            var bandwidthDictArr = self.get("bandwidthDictArr");
-            bandwidthRange.push(bandwidthDictArr[0].bandwidth);
-            bandwidthRange.push(bandwidthDictArr[bandwidthDictArr.length - 1].bandwidth);
-            var scopeDictArr = self.get("scopeDictArr");
-            scopeRange.push(scopeDictArr[0].scope);
-            scopeRange.push(scopeDictArr[scopeDictArr.length - 1].scope);
-            var carriernoiseDictArr = self.get("carriernoiseDictArr");
-            carriernoiseRange.push(carriernoiseDictArr[0].carriernoise);
-            carriernoiseRange.push(carriernoiseDictArr[carriernoiseDictArr.length - 1].carriernoise);
+            var t_bandwidth = self.get("barcharts")["bandwidth"];
+            bandwidthRange = t_bandwidth.get("xRange");
+            var t_scope = self.get("barcharts")["scope"];
+            scopeRange = t_scope.get("xRange");
+            var t_carrier = self.get("barcharts")["carriernoise"];
+            carriernoiseRange = t_carrier.get("xRange");
 
             var detailSignals = new DetailSignal.Model({
                 "bandwidthRange":bandwidthRange,
@@ -341,71 +347,6 @@
             console.log(self.get("detailSignals"));
 
 
-        },
-
-        filterBandwith:function(bandwithFilterRange) {
-            var self = this;
-            var dictArr = self.get("bandwidthDictArr");
-            var result = []
-            for(var i=0;i<dictArr.length;i++) {
-                if(dictArr[i].bandwidth >= bandwithFilterRange[0] && dictArr[i].bandwidth <= bandwithFilterRange[1]){
-                    result.push.apply(result,dictArr[i].indexs);
-                }
-            }
-            console.log(result.length);
-
-            return result;
-        },
-
-        filterScope:function(scopeFilterRange) {
-            var self = this;
-            var dictArr = self.get("scopeDictArr");
-            var result = []
-            for(var i=0;i<dictArr.length;i++) {
-                if(dictArr[i].scope >= scopeFilterRange[0] && dictArr[i].scope <= scopeFilterRange[1]){
-                    result.push.apply(result,dictArr[i].indexs);
-                }
-            }
-            console.log(result.length);
-            return result;
-        },
-
-        filterCarriernoise:function(carriernoiseFilterRange) {
-            var self = this;
-            var dictArr = self.get("carriernoiseDictArr");
-            var result = []
-            for(var i=0;i<dictArr.length;i++) {
-                if(dictArr[i].carriernoise >= carriernoiseFilterRange[0] && dictArr[i].carriernoise <= carriernoiseFilterRange[1]){
-                    result.push.apply(result,dictArr[i].indexs);
-                }
-            }
-            console.log(result.length);
-            return result;
-        },
-
-        filterFirsttime:function(firsttimeFilterRange) {
-            var self = this;
-            var dictArr = self.get("firsttimeDictArr");
-            var result = []
-            for(var i=0;i<dictArr.length;i++) {
-                if(dictArr[i].firsttime >= firsttimeFilterRange[0] && dictArr[i].firsttime <= firsttimeFilterRange[1]){
-                    result.push.apply(result,dictArr[i].indexs);
-                }
-            }
-            console.log(result.length);
-            return result;
-        },
-        filterMidfre: function(midfreFilterRange) {
-            var self = this;
-            var dictArr = self.get("midfreDictArr");
-            var result = []
-            for(var i=0;i<dictArr.length;i++) {
-                if(dictArr[i].midfre >= midfreFilterRange[0] && dictArr[i].midfre <= midfreFilterRange[1]){
-                    result.push.apply(result,dictArr[i].indexs);
-                }
-            }
-            console.log(result.length);
-            return result;
         },
 
         updateFilterArr: function() {
@@ -461,7 +402,7 @@
 
         updateFilterArrWithoutInx: function(v_df) {
             var self = this;
-            var bandwithFilterRange = Variables.get("bandwithFilterRange");
+            var bandwidthFilterRange = Variables.get("bandwidthFilterRange");
             var scopeFilterRange = Variables.get("scopeFilterRange");
             var carriernoiseFilterRange = Variables.get("carriernoiseFilterRange");
             var firsttimeFilterRange = Variables.get("firsttimeFilterRange");
@@ -469,9 +410,9 @@
             console.time(1);
 
             var filters = [];
-            if(bandwithFilterRange) {
+            if(bandwidthFilterRange) {
                 var filter = {}
-                filter['range'] = bandwithFilterRange;
+                filter['range'] = bandwidthFilterRange;
                 filter['name'] = 'Bandwidth(dB)';//'bandwidth';
                 filters.push(filter);
             }
@@ -528,26 +469,7 @@
                     });
                     console.timeEnd(1);
                     Variables.set("filterSignals",filterSignals);
-                    // console.log(filterSignals);
                 }, v_df);
-                // for(var i=0;i<signals.length;i++) {
-                //     var signal = signals[i];
-                //     var isIn = true;
-                //     for(var j=0;j<filters.length;j++) {
-                //         var filter = filters[j];
-                //         var attrName = filter["name"];
-                //         var range = filter["range"];
-                //         if(signal[attrName] < range[0] || signal[attrName] > range[1]) {
-                //             isIn = false;
-                //             break;
-                //         }
-                //     }
-                //     if(isIn) {
-                //         filterSignals.push(signal);
-                //     }
-                // }
-                // Variables.set("filterSignals",filterSignals);
-                // console.timeEnd(1);
             }
         },
 
@@ -566,41 +488,7 @@
                         detailSignals.push(signal);
                     }
                 }
-                console.log(detailSignals);
                 Variables.set("detailSignals",detailSignals);
-                //local VS db
-                // var t_df = $.Deferred(), filters = [], t_condition = {};
-                // if(zoominFirsttimeFilterRange) {
-                //     var filter = {}
-                //     filter['range'] = zoominFirsttimeFilterRange;
-                //     filter['name'] = 'FirsttimeDate';//'firsttime';
-                //     filters.push(filter);
-                // }
-                // if(zoominMidfreFilterRange) {
-                //     var filter = {}
-                //     filter['range'] = zoominMidfreFilterRange;
-                //     filter['name'] = 'Midfrequency(MHz)';//'midfre';
-                //     filters.push(filter);
-                // }
-                // for(var i in filters){
-                //     var t_range = filters[i].range;
-                //     t_condition[filters[i].name] = {
-                //         '$gte': t_range[0],
-                //         '$lte': t_range[1],
-                //     }
-                // }
-                // t_condition = {
-                //     condition: t_condition,
-                //     return: {'id': 1},
-                // }
-                // self.queryFromDB("query", t_condition, function(v_data){
-                //         var t_result = d3.set(_.map(v_data, "id"));
-                //         var t_signals = _.filter(filterSignals, function(t_s){
-                //             return t_result.has(t_s["id"]);
-                //         });
-                //         Variables.set("detailSignals",t_signals);
-                //         console.timeEnd(2);
-                //     }, t_df);
             }
             else {
                 Variables.set("detailSignals",null);
@@ -608,13 +496,14 @@
             console.timeEnd(2);
         },
 
-        queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_update){
+        queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.get("dataTable");
             $.ajax({
                 url: "/query?"+JSON.stringify({
                     table: t_table,
                     condition: v_condition,
                     command: v_command,
+                    extra: v_extra,
                     update: v_update,
                 }),
                 success: function(v_data){

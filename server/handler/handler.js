@@ -20,7 +20,7 @@ var fileType = {
 	"pdf":"application/pdf",
 };
 
-function initialize(root, db, logger){
+function initialize(root, db, views, logger){
 	var resOpt = {
 		root:  root
 	};
@@ -94,6 +94,9 @@ function initialize(root, db, logger){
 			break;
 			case "update":
 				db.update(t_conditions.table, t_conditions.condition, t_conditions.update, responseFunc);
+			break;
+			case "barchart":
+				db.aggregate(t_conditions.table, t_conditions.condition, views.barchart(responseFunc, t_conditions.extra));
 			break;
 		}
 	}
