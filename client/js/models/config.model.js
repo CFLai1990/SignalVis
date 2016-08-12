@@ -38,6 +38,18 @@ define([
                 "scope": "能量",
                 "carriernoise": "载噪比",
             },
+            "attrs": {
+                "bandwidth": {"attr": "Bandwidth(dB)", "scale": "power"},
+                "scope": {"attr": "Scope(dBm)", "scale": "linear"},
+                "carriernoise": {"attr": "Carriernoise(dB)", "scale": "linear"},
+            },
+            "pixel": {
+                "attrs": [
+                    {"name": "midfre", "attr": "Midfrequency(MHz)", "scale": "linear"},
+                    {"name": "firsttime", "attr": "FirsttimeDate", "scale": "time"},
+                ],
+                "size": [120, 240],
+            },
         },
     }))();
 });

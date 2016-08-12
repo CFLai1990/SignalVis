@@ -98,6 +98,9 @@ function initialize(root, db, views, logger){
 			case "barchart":
 				db.aggregate(t_conditions.table, t_conditions.condition, views.barchart(responseFunc, t_conditions.extra));
 			break;
+			case "pixelmap":
+				db.aggregate(t_conditions.table, t_conditions.condition, views.pixelmap(responseFunc, t_conditions.extra));
+			break;
 		}
 	}
 

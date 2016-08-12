@@ -22,11 +22,6 @@ define([
             "carriernoiseRange":null,
         },
         initialize:function(options) {
-            // this.set("signals",options.signals);
-            // this.set("minTime",options.minTime);
-            // this.set("maxTime",options.maxTime);
-            // this.set("minMidfre",options.minMidfre);
-            // this.set("maxMidfre",options.maxMidfre);
             this.set("bandwidthRange",options.bandwidthRange);
             this.set("scopeRange",options.scopeRange);
             this.set("carriernoiseRange",options.carriernoiseRange);
@@ -37,9 +32,6 @@ define([
         initialize: function(models, options) {
             var self = this;
             _.extend(this, _.pick(options, 'bandwidthRange', 'scopeRange',"carriernoiseRange"));
-            // this.bandwidthRange = options.bandwidthRange；
-            // self.scopeRange = options.scopeRange;
-            // self.carriernoiseRange = options.carriernoiseRange;
         }
     });
     return detailSignals;

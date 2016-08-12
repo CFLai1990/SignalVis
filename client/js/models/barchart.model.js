@@ -116,7 +116,6 @@ define([
             for(var i =0;i<numOfBins;i++) {
                 filterBins.push(0);
             }
-            console.log(filterSignals[0], attrName);
             if(filterSignals) {
                 for(var i=0;i<filterSignals.length;i++) {
                     var binIndex = parseInt((filterSignals[i][attrName] - xmin)/binRange);
@@ -128,7 +127,6 @@ define([
             else {
                 filterBins = null;
             }
-            console.log(filterBins);
             self.set("filterBins",filterBins);
         }
     });

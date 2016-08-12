@@ -36,7 +36,53 @@ function barchart(v_callback, v_parameters){
 	};
 }
 
+function pixelmap(v_callback, v_parameters){
+    var t_sort = function(v_arr, v_key){
+        return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});
+    };
+    return function(v_data){
+        var t_key = v_parameters.key, t_size = v_parameters.size;
+        var t_data = t_sort(v_data, t_key), t_subData = _.map(t_data, "indexs");
+        var t_min = t_data[0][t_key], t_max = t_data[t_data.length - 1][t_key];
+        var t_subMax = _.max(_.max(t_subData, function(t){return _.max(t);}));
+        var t_subMin = _.min(_.min(t_subData, function(t){return _.min(t);}));
+        var t_binR = (t_max - t_min) / t_size[0], t_subBinR = (t_subMax - t_subMin) / t_size[1];
+        var t_aggCount = [];
+        for(var i = 0; i < t_size[0]; i++){
+            var tt_bin = [];
+            for(var j = 0; j < t_size[1]; j++){
+                tt_bin[j] = 0;
+            }
+            t_aggCount.push(tt_bin);
+        }
+        for(var i = 0; i < t_data.length; i++){
+            var tt_i = parseInt((t_data[i][t_key] - t_min) / t_binR);
+            if(tt_i >= t_size[0]){
+                tt_i = t_size[0] - 1;
+            }
+            var tt_sub = t_subData[i];
+            for(var j = 0; j < tt_sub.length; j++){
+                var tt_j = parseInt((tt_sub[j] - t_subMin) / t_subBinR);
+                if(tt_j >= t_size[1]){
+                    tt_j = t_size[1] - 1;
+                }
+                t_aggCount[tt_i][tt_j]++
+            }
+        }
+        var t_result = {
+            "attr": v_parameters.attr,
+            "subattr": v_parameters.subattr,
+            "size": t_size,
+            "aggCount": t_aggCount,
+            "range": [t_min, t_max],
+            "subRange": [t_subMin, t_subMax],
+        };
+        v_callback(t_result);
+    };
+}
+
 module.exports = {
 	initialize: initialize,
 	barchart: barchart,
+    pixelmap: pixelmap,
 };

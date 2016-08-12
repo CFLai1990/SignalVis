@@ -120,9 +120,9 @@ define([
         {
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
-            self.margin = {top: t_height * 0.02, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.04};
+            self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.04};
             self.chartWidth = t_width - self.margin.left - self.margin.right;
-            self.chartHeight = t_height * 0.60;
+            self.chartHeight = t_height * 0.57;
             self.have_zoomin = 0;
 //useful variables
             var detailSignals = Datacenter.get('signals');

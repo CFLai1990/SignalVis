@@ -18,6 +18,16 @@
  ], function(require, Mn, Backbone,Config,Variables,Signal, BarchartModel,ScatterPlotModel,HighDimension,DetailSignal){
     'use strict';
 
+    $.whenWithProgress = function(arrayOfPromises, progressCallback) {
+       var cntr = 0;
+       for (var i = 0; i < arrayOfPromises.length; i++) {
+           arrayOfPromises[i].done(function() {
+               progressCallback();
+           });
+       }
+       return jQuery.when.apply(jQuery, arrayOfPromises);
+    }
+
     return window.Datacenter = new (Backbone.Model.extend({
         defaults: function(){
             return {
@@ -169,67 +179,43 @@
         },
 
         readPreCompute: function(def) {
-            var self = this, t_signals = self.get("signals");var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
+            var self = this, t_signals = self.get("signals");
+            var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
             var t_time = d3.extent(_.map(t_signals, "firsttime")),
             t_freq = d3.extent(_.map(t_signals, "midfre"));
+            self.set("timeRange", t_time);
             self.set("minTime",t_time[0]);
             self.set("maxTime",t_time[1]);
+            self.set("midfreRange", t_freq);
             self.set("minMidfre",t_freq[0]);
             self.set("maxMidfre",t_freq[1]);
-            var td1 = $.Deferred(), td2 = $.Deferred(), td3 = $.Deferred(),
-            td4 = $.Deferred(), td5 = $.Deferred(), td6 = $.Deferred();
-
-            // self.queryFromDB("barchart", [{'$group':{'_id':'$Scope(dBm)', 'scope':{'$first':'$Scope(dBm)'}, 'indexs':{'$push':'$id'}}}],
-            //     function(v_d){
-            //         var bandwidthBarChart = new BarchartModel({
-            //             "attrName": v_d.attr,
-            //             "dataDictArr":self.get("bandwidthDictArr"),
-            //             "filterRangeName":"bandwidthFilterRange",
-            //             "filterDataArr":Variables.get("filterSignals"),
-            //             "scale":"power",
-            //         });
-            //         self.set("bandwidthBarChart",bandwidthBarChart);
-            //     }, td1);
-            self.setBarChart("bandwidth", "Bandwidth(dB)", "Bandwidth(dB)", "power", td1);
-            self.setBarChart("scope", "Scope(dBm)", "Scope(dBm)", "linear", td2);
-            self.setBarChart("carriernoise", "Carriernoise(dB)", "Carriernoise(dB)", "linear", td3);
-            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Scope(dBm)', 'scope':{'$first':'$Scope(dBm)'}, 'indexs':{'$push':'$id'}}}],
-            //     function(v_d){
-            //         self.set("scopeDictArr", t_sort(v_d, "scope"));
-            //     }, td1);
-            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Bandwidth(dB)', 'bandwidth':{'$first':'$Bandwidth(dB)'}, 'indexs':{'$push':'$id'}}}],
-            //     function(v_d){
-            //         self.set("bandwidthDictArr", t_sort(v_d, "bandwidth"));
-            //     }, td2);
-            // self.queryFromDB("aggregate", [{'$group':{'_id':'$Carriernoise(dB)', 'carriernoise':{'$first':'$Carriernoise(dB)'}, 'indexs':{'$push':'$id'}}}],
-            //     function(v_d){
-            //         self.set("carriernoiseDictArr", t_sort(v_d, "carriernoise"));
-            //     }, td3);
-            self.queryFromDB("aggregate", [{'$group':{'_id':'$Firsttime', 'firsttime':{'$first':'$Firsttime'}, 'indexs':{'$push':'$id'}}}],
-                function(v_d){
-                    self.set("firsttimeDictArr", t_sort(v_d, "firsttime"));
-                }, td4);
-            self.queryFromDB("aggregate", [{'$group':{'_id':'$Midfrequency(MHz)', 'midfre':{'$first':'$Midfrequency(MHz)'}, 'indexs':{'$push':'$id'}}}],
-                function(v_d){
-                    self.set("midfreDictArr", t_sort(v_d, "midfre"));
-                }, td5);
-            d3.json(Config.get("preComputeJsonPath"), function(data) {
-                self.set("aggCount",data.aggCount);
-                td6.resolve();
-            });
-            $.when(td1, td2, td3, td4, td5, td6)
-            .done(function(){def.resolve();});
+            var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
+            for(var i in t_attrs){
+                var t_a = t_attrs[i], tt_tds = $.Deferred();
+                t_tds.push(tt_tds.promise());
+                self.setBarChart(i, t_a.attr, t_a.scale, tt_tds);
+            }
+            var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
+            t_tds.push(tt_tds.promise());
+            self.setPixelMap(t_attrs[0].name, t_attrs[0].attr, 
+                t_attrs[1].name, t_attrs[1].attr, t_pxl.size, tt_tds);
+            // var td_ext = $.Deferred();
+            // d3.json(Config.get("preComputeJsonPath"), function(data) {
+            //     self.set("aggCount",data.aggCount);
+            //     td_ext.resolve();
+            // });
+            $.whenWithProgress(t_tds, function(){})
+            .then(function(){def.resolve();});
 
         },
 
-        setBarChart: function(v_name, v_attr, v_key, v_scale, v_td){
+        setBarChart: function(v_name, v_attr, v_scale, v_td){
             var self = this, t_condition = [{
                 '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
             }];
-            t_condition[0]['$group'][v_key] = {'$first':"$" + v_attr};
+            t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
             self.queryFromDB("barchart", t_condition, 
                 function(v_d){
-                    console.log(v_d);
                     var t_barchart = new BarchartModel({
                         "attrName": v_name,
                         "numOfBins": v_d.binNumber,
@@ -241,8 +227,24 @@
                     });
                     self.get("barcharts")[v_name] = t_barchart;
                 }, v_td, {
-                    key: v_key,
+                    key: v_attr,
                     bins: Config.get("barchart").bins,
+                });
+        },
+
+        setPixelMap: function(v_name, v_attr, v_subname, v_subattr, v_size, v_td){
+            var self = this, t_condition = [{
+                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$' + v_subattr}}
+            }];
+            t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
+            self.queryFromDB("pixelmap", t_condition, 
+                function(v_d){
+                    self.set("aggCount", v_d.aggCount);
+                }, v_td, {
+                    key: v_attr,
+                    attr: v_name,
+                    subattr: v_subname,
+                    size: v_size,
                 });
         },
 

@@ -109,9 +109,9 @@ define([
                      this.$el.find("#firsttimeRangeText").text(rangeText);
                 }
                 else {
-                    var dictArr = Datacenter.get("firsttimeDictArr");
-                    var rangeText = new Date(dictArr[0].firsttime).toTimeString().substring(0,8) +
-                        " ~ " + new Date(dictArr[dictArr.length - 1].firsttime).toTimeString().substring(0,8);
+                    var t_range = Datacenter.get("timeRange");
+                    var rangeText = new Date(t_range[0]).toTimeString().substring(0,8) +
+                        " ~ " + new Date(t_range[1]).toTimeString().substring(0,8);
                     this.$el.find("#firsttimeRangeText").text(rangeText);
 
                 }
@@ -124,9 +124,9 @@ define([
                      this.$el.find("#midfreRangeText").text(rangeText);
                 }
                 else {
-                    var dictArr = Datacenter.get("midfreDictArr");
-                    var rangeText = dictArr[0].midfre.toFixed(3) +
-                        " ~ " + dictArr[dictArr.length - 1].midfre.toFixed(3);
+                    var t_range = Datacenter.get("midfreRange");
+                    var rangeText = t_range[0].toFixed(3) +
+                        " ~ " + t_range[1].toFixed(3);
                     this.$el.find("#midfreRangeText").text(rangeText);
 
                 }
