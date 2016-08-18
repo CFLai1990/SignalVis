@@ -77,15 +77,16 @@ define([
                     .range([0,self.chartHeight]);
 
     //glyph scale
+                var t_ranges = self.model.get("ranges");
                 self.bandwidthScale = d3.scale.linear()
-                                                        .domain(self.model.get("bandwidthRange"))
+                                                        .domain(t_ranges["bandwidth"])
                                                         .range([2,40]);
                 self.scopeScale = d3.scale.linear()
-                                                        .domain(self.model.get("scopeRange"))
+                                                        .domain(t_ranges["scope"])
                                                         .range([2,40]);
 
                 self.carriernoiseScale = d3.scale.linear()
-                                                            .domain(self.model.get("carriernoiseRange"))
+                                                            .domain(t_ranges["carriernoise"])
                                                             .range([0,0.75]);
 
     //main region

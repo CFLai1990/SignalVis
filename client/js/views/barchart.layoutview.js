@@ -7,16 +7,12 @@ define([
     'datacenter',
     'config',
     'text!templates/barchart.tpl',
-    "views/barchart.itemview"
-], function(require, Mn, _, $, Backbone, Datacenter, Config,Tpl,SVGItemView) {
+    "views/barchart.collectionview"
+], function(require, Mn, _, $, Backbone, Datacenter, Config,Tpl,barchartCollectionView) {
     'use strict';
     return Mn.LayoutView.extend({
-        // el:"#testRegion",
         tagName:"div",
         className: "barchartview",
-        // id:"testRegion",
-        // tagName: 'div',
-        // el:"#testRegion",
         template: _.template(Tpl),
 
         attributes:{
@@ -25,30 +21,25 @@ define([
 
         regions: {
                 svg:".barchartSVG",
-
         },
-
 
         initialize: function (options) {
             var self = this;
             options = options || {};
-            if(options.theTitle){
-                this.theTitle = options.theTitle;
-                // console.log(this.theTitle);
-            }
-            // self.svg = $(this.$el).find(".detailSignalsSVG");
-            // $(this.$el).draggable().on('click', '.closeBtn', function () {
-            //     self.onClickCloseBtn();
-            // });
+            _.extend(self, options);
         },
 
          onShow: function()
         {
             var self = this;
-             this.showChildView('svg', new SVGItemView({
-                    model:self.model,
-                    theTitle: self.theTitle
-            }));
+            self.showChildView('svg', new barchartCollectionView({collection: Datacenter.get("barchartCollection")}));
+            // for(var i in self.models){
+            //     var t_model = self.models[i], t_name = Config.get("chineseAttrNames")[i];
+            //      self.showChildView('svg', new barchartCollectionView({
+            //             model: t_model,
+            //             theTitle: t_name,
+            //     }));
+            // }
         }
     });
 });

@@ -1,8 +1,4 @@
-<div id = 'bandwidth-view'>
-</div>
-<div id = 'scope-view'>
-</div>
-<div id = 'carriernoise-view'>
+<div id = "attribute-view">
 </div>
 <div id = "scatterplot-container">
   <div id = "scatterplot-title">

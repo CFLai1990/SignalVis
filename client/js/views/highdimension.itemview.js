@@ -86,7 +86,7 @@ define([
             var filterSignals = Variables.get("filterSignals");
             var reductionSignals = self.model.get('reductionSignals');
             // console.log(reductionSignals)
-            var t_ratio = 0.1, t_samples;
+            var t_ratio = Config.get("projection")["SampleRate"], t_samples;
             if(filterSignals && filterSignals.length > 5 && reductionSignals) {
                 t_samples = _.sample(reductionSignals, Math.round(reductionSignals.length * t_ratio));
 

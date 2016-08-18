@@ -17,8 +17,6 @@ define([
         defaults: {
             "xModel":null,
             "yModel":null,
-            // "xfilterRangeName": null, //[] reference to Config
-            // "yfilterRangeName": null, //[] reference to Config
 
             // for plots
             "xmin":null,
@@ -38,8 +36,6 @@ define([
             // console.log(options);
             self.set("xModel",options.xModel);
             self.set("yModel",options.yModel);
-            // self.set("xfilterRangeName",options.xfilterRangeName);
-            // self.set("yfilterRangeName",options.yfilterRangeName);
             self.set("filterSignals",options.filterSignals);
             self.listenTo(self,"change:xModel", function(model, xModel){
                 self.updateX();
@@ -50,19 +46,22 @@ define([
                 self.set("redraw",!self.get("redraw"));
 
             });
-            self.listenTo(Variables,"change:bandwidthFilterRange", function(model, bandwidthFilterRange){
-                self.updateX();
-                self.updateY();
-                // console.log("555555555")
-                self.set("redraw",!self.get("redraw"));
+            // self.listenTo(Variables,"change:bandwidthFilterRange", function(model, bandwidthFilterRange){
+            //     self.updateX();
+            //     self.updateY();
+            //     self.set("redraw",!self.get("redraw"));
 
-            });
-            self.listenTo(Variables,"change:scopeFilterRange", function(model, scopeFilterRange){
-                self.updateX();
-                self.updateY();
-                self.set("redraw",!self.get("redraw"));
-            });
-            self.listenTo(Variables,"change:carriernoiseFilterRange", function(model, carriernoiseFilterRange){
+            // });
+            // self.listenTo(Variables,"change:scopeFilterRange", function(model, scopeFilterRange){
+            //     self.updateX();
+            //     self.updateY();
+            //     self.set("redraw",!self.get("redraw"));
+            // });
+            // self.listenTo(Variables,"change:carriernoiseFilterRange", function(model, carriernoiseFilterRange){
+            //     self.updateX();
+            //     self.updateY();
+            // });
+            self.listenTo(Variables, "changeFilterRange",  function(model, carriernoiseFilterRange){
                 self.updateX();
                 self.updateY();
             });
@@ -93,7 +92,7 @@ define([
             var xMode = self.get('xModel');
             var self = this;
             var filterRangeName = xMode.get('filterRangeName');
-            var filterRange = Variables.get(filterRangeName);
+            var filterRange = Variables.get("filterRanges")[filterRangeName];
             // console.log()
             if(!filterRange) {
                 self.set("xmin",xMode.get('xmin'));
@@ -112,7 +111,7 @@ define([
             var yModel = self.get('yModel');
             var self = this;
             var filterRangeName = yModel.get('filterRangeName');
-            var filterRange = Variables.get(filterRangeName);
+            var filterRange = Variables.get("filterRanges")[filterRangeName];
             if(!filterRange) {
                 self.set("ymin",yModel.get('xmin'));
                 self.set("ymax",yModel.get('xmax'));

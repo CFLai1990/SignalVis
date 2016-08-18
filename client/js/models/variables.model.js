@@ -17,6 +17,7 @@ define([
             "finishInit" : false, // whether init process finished
             //
             "mode":"zoomout", // zoomout or zoomin
+            "filterRanges": {},
             "bandwidthFilterRange":null, // null is not filter
             "scopeFilterRange":null,
             "carriernoiseFilterRange":null,
@@ -39,12 +40,20 @@ define([
 
         initialize: function(){
             var self = this;
-
-
-
         },
 
+        setFilterRange: function(v_attr, v_value, v_silent){
+            var self = this;
+            self.get("filterRanges")[v_attr] = v_value;
+            if(!v_silent){
+                self.trigger("changeFilterRange");
+            }
+        },
 
+        triggerFilter: function(){
+            var self = this;
+            self.trigger("changeFilterRange");
+        }
 
     }))();
 });

@@ -106,7 +106,7 @@ define([
         calcFilterBins:function(filterSignals) {
             var self = this;
             var attrName = self.get("attrName");
-            var dataDictArr = self.get("dataDictArr");
+            // var dataDictArr = self.get("dataDictArr");
             var numOfBins = self.get("numOfBins");
             var t_xRange = self.get("xRange");
             var xmin = t_xRange[0];

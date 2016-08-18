@@ -37,19 +37,26 @@ define([
                 self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                         self.onChangeFilterSignals(filterSignals);
                 });
-                self.listenTo(Variables,"change:bandwidthFilterRange", function(model,bandwidthFilterRange){
+                // self.listenTo(Variables,"change:bandwidthFilterRange", function(model,bandwidthFilterRange){
+                //         self.updateBandwithRangeText();
+                // });
+                // self.listenTo(Variables,"change:scopeFilterRange", function(model,scopeFilterRange){
+                //         self.updateScopeRangeText();
+                // });
+                // self.listenTo(Variables,"change:carriernoiseFilterRange", function(model,carriernoiseFilterRange){
+                //         self.updateCarriernoiseRangeText();
+                // });
+                // self.listenTo(Variables,"change:firsttimeFilterRange", function(model,carriernoiseFilterRange){
+                //         self.updateTimeRangeText();
+                // });
+                // self.listenTo(Variables,"change:midfreFilterRange", function(model,midfreFilterRange){
+                //         self.updateMidfreRangeText();
+                // });
+                self.listenTo(Variables, "changeFilterRange",  function(model,midfreFilterRange){
                         self.updateBandwithRangeText();
-                });
-                self.listenTo(Variables,"change:scopeFilterRange", function(model,scopeFilterRange){
                         self.updateScopeRangeText();
-                });
-                self.listenTo(Variables,"change:carriernoiseFilterRange", function(model,carriernoiseFilterRange){
                         self.updateCarriernoiseRangeText();
-                });
-                self.listenTo(Variables,"change:firsttimeFilterRange", function(model,carriernoiseFilterRange){
                         self.updateTimeRangeText();
-                });
-                self.listenTo(Variables,"change:midfreFilterRange", function(model,midfreFilterRange){
                         self.updateMidfreRangeText();
                 });
 
@@ -102,7 +109,7 @@ define([
                     this.showChildView("sizeLeg", new OverviewLeg());
             },
             updateTimeRangeText:function() {
-                var filterRange = Variables.get("firsttimeFilterRange");
+                var filterRange = Variables.get("filterRanges")["time"];
                 if(filterRange) {
                     var rangeText = new Date(filterRange[0]).toTimeString().substring(0,8) +
                         " ~ " + new Date(filterRange[1]).toTimeString().substring(0,8);
@@ -117,7 +124,7 @@ define([
                 }
             },
             updateMidfreRangeText:function() {
-                var filterRange = Variables.get("midfreFilterRange");
+                var filterRange = Variables.get("filterRanges")["midfre"];
                 if(filterRange) {
                     var rangeText = filterRange[0].toFixed(3) +
                         " ~ " + filterRange[1].toFixed(3);
@@ -132,7 +139,7 @@ define([
                 }
             },
             updateBandwithRangeText:function() {
-                var filterRange = Variables.get("bandwidthFilterRange");
+                var filterRange = Variables.get("filterRanges")["baud"];
                 if(filterRange) {
                     var rangeText = filterRange[0].toFixed(3) +
                         " ~ " + filterRange[1].toFixed(3);
@@ -147,7 +154,7 @@ define([
                 }
             },
             updateScopeRangeText:function() {
-                var filterRange = Variables.get("scopeFilterRange");
+                var filterRange = Variables.get("filterRanges")["scope"];
                 if(filterRange) {
                     var rangeText = parseInt(filterRange[0]) +
                         " ~ " + parseInt(filterRange[1]);
@@ -163,7 +170,7 @@ define([
             },
 
             updateCarriernoiseRangeText:function() {
-                var filterRange = Variables.get("carriernoiseFilterRange");
+                var filterRange = Variables.get("filterRanges")["carriernoise"];
                 if(filterRange) {
                     var rangeText = parseInt(filterRange[0]) +
                         " ~ " + parseInt(filterRange[1]);

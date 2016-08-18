@@ -1,0 +1,8 @@
+{
+    // Comments are supported
+    "uid": "SignalVis (port: 8888)",
+    "append": false,
+    "watch": true,
+    "script": "index.js",
+    "sourceDir": "/media/chufanlai/4e8084d3-15a1-4975-b255-616c7f56f5bd/chufanlai/codes/signalVis_New"
+}

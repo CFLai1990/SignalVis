@@ -23,12 +23,9 @@ define([
                 'style' : 'width: 100%; height:100%;'
             },
             regions: {
-                bandwidth: "#bandwidth-view",
-                scope:"#scope-view",
-                carriernoise:"#carriernoise-view",
+                attributesView: "#attribute-view",
                 scatterplot:"#scatterplot-view",
                 detailSignal:"#detailSignal",
-
             },
             events :{
                 // "click #x_dropdown li a": "changeX",
@@ -54,82 +51,20 @@ define([
                 }
             },
 
-
-            // changeX: function(evt) {
-            //     var scatterplotModel = Datacenter.get("scatterplot");
-            //     var targetName = evt.target.getAttribute("data-value");
-            //     var preModelName = scatterplotModel.get('xModel').get("attrName");
-            //     if(preModelName != targetName) {
-            //         var targetModel;
-            //         if(targetName == "bandwidth") {
-            //             targetModel = Datacenter.get("bandwidthBarChart");
-            //             $(this.$el).find("#scatterplotXSelect").html("Bandwidth" + ' <span class="caret"></span>');
-
-            //         }
-            //         else if (targetName == "scope") {
-            //             targetModel = Datacenter.get("scopeBarChart");
-            //             $(this.$el).find("#scatterplotXSelect").html("Scope" + ' <span class="caret"></span>');
-
-            //         }
-            //         else if(targetName == "carriernoise") {
-            //             targetModel = Datacenter.get('carriernoiseBarChart');
-            //             $(this.$el).find("#scatterplotXSelect").html("Carriernoise" + ' <span class="caret"></span>');
-
-            //         }
-            //         scatterplotModel.set("xModel", targetModel);
-            //     }
-            // },
-            // changeY: function(evt) {
-            //     var scatterplotModel = Datacenter.get("scatterplot");
-            //     var targetName = evt.target.getAttribute("data-value");
-            //     var preModelName = scatterplotModel.get('yModel').get("attrName");
-            //     if(preModelName != targetName) {
-            //         var targetModel;
-            //         if(targetName == "bandwidth") {
-            //             targetModel = Datacenter.get("bandwidthBarChart");
-            //             $(this.$el).find("#scatterplotYSelect").html("Bandwidth" + ' <span class="caret"></span>');
-
-            //         }
-            //         else if (targetName == "scope") {
-            //             targetModel = Datacenter.get("scopeBarChart");
-            //             $(this.$el).find("#scatterplotYSelect").html("Scope" + ' <span class="caret"></span>');
-
-            //         }
-            //         else if(targetName == "carriernoise") {
-            //             targetModel = Datacenter.get('carriernoiseBarChart')
-            //             $(this.$el).find("#scatterplotYSelect").html("Carriernoise" + ' <span class="caret"></span>');
-
-            //         }
-            //         scatterplotModel.set("yModel", targetModel);
-            //     }
-            // },
             onShow: function(){
                 var self = this;
                 self.initHDBtns();
                 var t_bts = Datacenter.get("barcharts");
-                for(var i in t_bts){
-                    self.showChildView(i, new BarChartLayoutView({
-                        model: t_bts[i],
-                        id: i + "BarChart",
-                        theTitle: Config.get("chineseAttrNames")[i] + "分布",
-                    }))
-                }
-                // self.showChildView('bandwidth', new BarChartLayoutView({
-                //     model:Datacenter.get("bandwidthBarChart"),
-                //     id:"bandwidthBarChart",
-                //     theTitle:"分布"
-                // }));
-                // self.showChildView('scope', new BarChartLayoutView({
-                //     model:Datacenter.get("scopeBarChart"),
-                //     id:"scopeBarChart",
-                //     theTitle:"能量分布"
-                // }));
-                // self.showChildView('carriernoise', new BarChartLayoutView({
-                //     model:Datacenter.get("carriernoiseBarChart"),
-                //     id:"carriernoiseBarChart",
-                //     theTitle:"载噪比分布"
-
-                // }));
+                // for(var i in t_bts){
+                //     self.showChildView(i, new BarChartLayoutView({
+                //         model: t_bts[i],
+                //         id: i + "BarChart",
+                //         theTitle: Config.get("chineseAttrNames")[i] + "分布",
+                //     }))
+                // }
+                self.showChildView('attributesView', new BarChartLayoutView({
+                    id: "attributes",
+                }));
                 self.showChildView('scatterplot', new HighDimensionItemView({
                     model:Datacenter.get("highdimension"),
                     id:"highdimension",
@@ -140,17 +75,17 @@ define([
                     model:Datacenter.get("detailSignals")
                 }));
             },
+
             onMouOverBtn:function(evt) {
                 // console.log(evt);
                 $(evt.target).addClass("hover");
-
             },
 
             onMouOutBtn: function(evt) {
                 // console.log(evt);
                 $(evt.target).removeClass("hover");
-
             },
+
             initHDBtns:function(){
                 var highdimension = Datacenter.get("highdimension");
                 if(highdimension.get("bandwidthActive"))
@@ -164,6 +99,7 @@ define([
                 if(highdimension.get("carriernoiseActive"))
                     this.$el.find("#hdCarriernoise").addClass("active");
             },
+
             taggleDimension: function(evt) {
                 var attr = evt.target.getAttribute("data-value");
                 var highdimension = Datacenter.get("highdimension");

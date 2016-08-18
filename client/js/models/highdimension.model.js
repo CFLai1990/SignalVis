@@ -49,18 +49,18 @@ define([
             self.set("scopeActive",options.scopeActive);
             self.set("carriernoiseActive",options.carriernoiseActive);
 
-            // self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
+            self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
 
-            //     self.set("filterSignals",filterSignals);
-            //     // console.log(filterSignals);
-            //     if(filterSignals && this.get("filterSignals").length > 5){
-            //         self.updateFilterSignalsArr();
-            //         self.dimRecution();
-            //         self.updateRange();
-            //     }
-            //     self.set("redraw",!self.get("redraw"));
+                self.set("filterSignals",filterSignals);
+                // console.log(filterSignals);
+                if(filterSignals && this.get("filterSignals").length > 5){
+                    self.updateFilterSignalsArr();
+                    self.dimRecution();
+                    self.updateRange();
+                }
+                self.set("redraw",!self.get("redraw"));
 
-            // });
+            });
 
             self.listenTo(self,"change:bandwidthActive", function(model, bandwidthActive){
                 if(this.get("filterSignals") && this.get("filterSignals").length > 5) {

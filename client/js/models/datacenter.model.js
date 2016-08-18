@@ -13,9 +13,10 @@
     "models/barchart.model",
     "models/scatterplot.model",
     "models/highdimension.model",
-    "models/detailSignal.model"
+    "models/detailSignal.model",
+    "collections/barchart.collection",
 
- ], function(require, Mn, Backbone,Config,Variables,Signal, BarchartModel,ScatterPlotModel,HighDimension,DetailSignal){
+ ], function(require, Mn, Backbone,Config,Variables,Signal, BarchartModel,ScatterPlotModel,HighDimension,DetailSignal,barchartCollection){
     'use strict';
 
     $.whenWithProgress = function(arrayOfPromises, progressCallback) {
@@ -50,6 +51,7 @@
                 "scopeBarChart":null,
                 "carriernoiseBarChart":null,
                 "barcharts": {},
+                "barchartCollection": null,
                 //scatterplot
                 "scatterplot":null,
                 "highdimension":null,
@@ -75,7 +77,8 @@
             self.listenTo(Variables,"change:bandwidthFilterRange", queryFunc);
             self.listenTo(Variables,"change:scopeFilterRange", queryFunc);
             self.listenTo(Variables,"change:carriernoiseFilterRange", queryFunc);
-            self.listenTo(Variables,"change:mode", queryFunc);
+            self.listenTo(Variables, "changeFilterRange", queryFunc);
+            // self.listenTo(Variables,"change:mode", queryFunc);
             // self.listenTo(Variables,"change:firsttimeFilterRange", queryFunc);
             // self.listenTo(Variables,"change:midfreFilterRange", queryFunc);
             // self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
@@ -84,6 +87,7 @@
             // self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
             //         self.updateDetailSignals();
             // });
+            self.set("barchartCollection", new barchartCollection());
         },
 
         start: function(options){
@@ -99,7 +103,6 @@
 
             $.when(readPreComputeDef).done(function(){
                 console.log('finish reading data');
-                // self.setBarCharts();
                 self.setScatterPlot();
                 self.setHighDimension();
                 self.setDetailSignals();
@@ -111,53 +114,29 @@
 
         readSignal: function(def) {
             var self = this;
-            // d3.csv(Config.get("signalCsvPath"), function(data) {
-            //     self.set("signals",[]);
-            //     for(var i =0;i<data.length;i++) {
-            //         var signal = data[i];
-            //         var tmp = {}
-            //         tmp.bandwidth = parseFloat(signal.Bandwidth);
-            //         tmp.scope = parseInt(signal.Scope);
-            //         tmp.midfre = parseFloat(signal.Midfrequency);
-            //         tmp.firsttime = parseInt(signal.Firsttime);
-            //         tmp.carriernoise = parseInt(signal.Carriernoise);
-            //         tmp.scope = parseInt(signal.Scope);
-
-            //         tmp.normBandwidth = parseFloat(signal.NormBandwidth);
-            //         tmp.normMidfrequency = parseFloat(signal.NormMidfrequency);
-            //         tmp.normScope = parseFloat(signal.NormScope);
-            //         tmp.normCarriernoise = parseFloat(signal.NormCarriernoise);
-            //         tmp.normFirsttime = parseFloat(signal.NormFirsttime);
-
-            //         self.get("signals").push(tmp);
-            //     }
-            //     console.log(self.get("signals"));
-            //     def.resolve();
-            // });
-            d3.csv(Config.get("signalOriginCsvPath"), function(data) {
-                var t_list = Config.get("nameList");
+            d3.csv(Config.getData("localPath"), function(data) {
+                var t_list = Config.get("nameList"), t_keys = _.keys(data[0]);
                 var t_signals = [], t_data = [];
                 for(var i =0;i<data.length;i++) {
                     var signal = data[i];
                     var tmp = {}, t_dt = [];
-                    for(var j in t_list){
+                    for(var j in signal){
                         var t_attr = t_list[j];
-                        if(t_attr.name){
-                            var t_d = signal[j];
-                            switch(t_attr.type){
-                                case "float":
-                                    t_d = parseFloat(t_d);
-                                break;
-                                case "int":
-                                    t_d = parseInt(t_d);
-                                break;
-                                case "time":
-                                    t_d = new Date(t_d).getTime();
-                                break;
-                            }
-                            tmp[t_attr.name] = t_d;
-                            t_dt.push(t_d);
+                        if(!t_attr || !t_attr.name) continue;
+                        var t_d = signal[j];
+                        switch(t_attr.type){
+                            case "float":
+                                t_d = parseFloat(t_d);
+                            break;
+                            case "int":
+                                t_d = parseInt(t_d);
+                            break;
+                            case "time":
+                                t_d = new Date(t_d).getTime();
+                            break;
                         }
+                        tmp[t_attr.name] = t_d;
+                        t_dt.push(t_d);
                     }
                     t_data.push(t_dt);
                     t_signals.push(tmp);
@@ -179,7 +158,7 @@
         },
 
         readPreCompute: function(def) {
-            var self = this, t_signals = self.get("signals");
+            var self = this, t_signals = self.get("signals"), t_keys = _.keys(t_signals[0]);
             var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
             var t_time = d3.extent(_.map(t_signals, "firsttime")),
             t_freq = d3.extent(_.map(t_signals, "midfre"));
@@ -190,23 +169,25 @@
             self.set("minMidfre",t_freq[0]);
             self.set("maxMidfre",t_freq[1]);
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
-            for(var i in t_attrs){
-                var t_a = t_attrs[i], tt_tds = $.Deferred();
+            for(var i in t_keys){
+                var t_i = t_keys[i];
+                if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
+                    continue;
+                }
+                var  t_a = t_attrs[t_i];
+                if(!t_a){
+                    continue;
+                }
+                var tt_tds = $.Deferred();
                 t_tds.push(tt_tds.promise());
-                self.setBarChart(i, t_a.attr, t_a.scale, tt_tds);
+                self.setBarChart(t_i, t_a.attr, t_a.scale, tt_tds);
             }
             var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
-            self.setPixelMap(t_attrs[0].name, t_attrs[0].attr, 
+            self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
                 t_attrs[1].name, t_attrs[1].attr, t_pxl.size, tt_tds);
-            // var td_ext = $.Deferred();
-            // d3.json(Config.get("preComputeJsonPath"), function(data) {
-            //     self.set("aggCount",data.aggCount);
-            //     td_ext.resolve();
-            // });
             $.whenWithProgress(t_tds, function(){})
             .then(function(){def.resolve();});
-
         },
 
         setBarChart: function(v_name, v_attr, v_scale, v_td){
@@ -214,7 +195,7 @@
                 '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
             }];
             t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
-            self.queryFromDB("barchart", t_condition, 
+            self.queryFromDB("barchart", t_condition,
                 function(v_d){
                     var t_barchart = new BarchartModel({
                         "attrName": v_name,
@@ -222,10 +203,12 @@
                         "totalBins": v_d.binCount,
                         "xRange": v_d.xRange,
                         "yRange": v_d.yRange,
-                        "filterRangeName": v_name + "FilterRange",
+                        "filterRangeName": v_attr,
                         "scale": v_scale,
                     });
                     self.get("barcharts")[v_name] = t_barchart;
+                    self.get("barchartCollection").add(t_barchart);
+                    Variables.get("filterRanges")[v_attr] = null;
                 }, v_td, {
                     key: v_attr,
                     bins: Config.get("barchart").bins,
@@ -237,7 +220,7 @@
                 '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$' + v_subattr}}
             }];
             t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
-            self.queryFromDB("pixelmap", t_condition, 
+            self.queryFromDB("pixelmap", t_condition,
                 function(v_d){
                     self.set("aggCount", v_d.aggCount);
                 }, v_td, {
@@ -248,43 +231,11 @@
                 });
         },
 
-        setBarCharts: function() {
-            var self = this;
-            var bandwidthBarChart = new BarchartModel({
-                "attrName":"_id",
-                "dataDictArr":self.get("bandwidthDictArr"), //[{"attr": ,"indexs":[]}] //all data
-                "filterRangeName":"bandwidthFilterRange", //name of Variables
-                // "filterDataArr":Variables.get("filterSignals"),
-                "scale":"power",
-            });
-            self.set("bandwidthBarChart",bandwidthBarChart);
-
-            var scopeBarChart = new BarchartModel({
-                "attrName":"_id",
-                "dataDictArr":self.get("scopeDictArr"), //[{"attr": ,"indexs":[]}] //all data
-                "filterRangeName":"scopeFilterRange", //[] reference to Config
-                // "filterDataArr":Variables.get("filterSignals"),
-                "scale":"linear",
-
-            });
-            self.set("scopeBarChart",scopeBarChart);
-
-            var carriernoiseBarChart = new BarchartModel({
-                "attrName":"_id",
-                "dataDictArr":self.get("carriernoiseDictArr"), //[{"attr": ,"indexs":[]}] //all data
-                "filterRangeName":"carriernoiseFilterRange", //[] reference to Config
-                // "filterDataArr":Variables.get("filterSignals"),
-                "scale":"linear",
-
-            });
-            self.set("carriernoiseBarChart",carriernoiseBarChart);
-        },
-
         setScatterPlot:function() {
             var self =this;
             var scatterplotModel = new ScatterPlotModel({
                 "xModel": self.get("barcharts")["bandwidth"],
-                "yModel":self.get("barcharts")["scope"],
+                "yModel": self.get("barcharts")["carriernoise"],
                 "filterSignals": self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
@@ -302,22 +253,23 @@
             self.set("highdimension",highDimension);
 
         },
+
         setDetailSignals:function() {
             var self =this;
             var bandwidthRange = [];
             var scopeRange = [];
             var carriernoiseRange = [];
             var t_bandwidth = self.get("barcharts")["bandwidth"];
-            bandwidthRange = t_bandwidth.get("xRange");
+            bandwidthRange = t_bandwidth?t_bandwidth.get("xRange"):null;
             var t_scope = self.get("barcharts")["scope"];
-            scopeRange = t_scope.get("xRange");
+            scopeRange = t_scope?t_scope.get("xRange"):null;
             var t_carrier = self.get("barcharts")["carriernoise"];
-            carriernoiseRange = t_carrier.get("xRange");
+            carriernoiseRange = t_carrier?t_carrier.get("xRange"):null;
 
             var detailSignals = new DetailSignal.Model({
-                "bandwidthRange":bandwidthRange,
-                "scopeRange":scopeRange,
-                "carriernoiseRange":carriernoiseRange,
+                "bandwidth":bandwidthRange,
+                "scope":scopeRange,
+                "carriernoise":carriernoiseRange,
             });
             this.set("detailSignals",detailSignals);
             console.log(detailSignals);
@@ -351,101 +303,27 @@
 
         },
 
-        updateFilterArr: function() {
-            var self = this;
-            var bandwithFilterArr =  self.get("bandwithFilterArr");
-            var scopeFilterArr  =   self.get("scopeFilterArr");
-            var carriernoiseFilterArr =  self.get("carriernoiseFilterArr");
-            var firsttimeFilterArr =  self.get("firsttimeFilterArr");
-            var midfreFilterArr  = self.get("midfreFilterArr");
-            var resultInx = null;
-            var result = null;
-            var tmpArr = [];
-
-            if(scopeFilterArr)
-                tmpArr.push(scopeFilterArr);
-            if(carriernoiseFilterArr)
-                tmpArr.push(carriernoiseFilterArr);
-            if(firsttimeFilterArr)
-                tmpArr.push(firsttimeFilterArr);
-            if(midfreFilterArr)
-                tmpArr.push(midfreFilterArr);
-            if(bandwithFilterArr)
-                tmpArr.push(bandwithFilterArr);
-            if(tmpArr.length == 0)
-                resultInx = null;
-            else {
-                tmpArr = _.sortBy(tmpArr, function(o) { return o.length; })
-                console.log(tmpArr);
-
-                resultInx = tmpArr[0];
-                for(var i=1;i<tmpArr.length;i++) {
-                    resultInx = _.intersection(resultInx,tmpArr[i]);
-                }
-            }
-            if(resultInx) {
-                result = [];
-                console.log("cross filter result: " + resultInx.length);
-                for(var i=0;i<resultInx.length;i++) {
-                    var index = resultInx[i];
-                    var a = self.get('signals')[index];
-                    result.push(a);
-                }
-            }
-            else {
-                result = null;
-                console.log('not filter result');
-            }
-
-            Variables.set('filterSignals',result);
-
-
-        },
-
         updateFilterArrWithoutInx: function(v_df) {
             var self = this;
-            var bandwidthFilterRange = Variables.get("bandwidthFilterRange");
-            var scopeFilterRange = Variables.get("scopeFilterRange");
-            var carriernoiseFilterRange = Variables.get("carriernoiseFilterRange");
-            var firsttimeFilterRange = Variables.get("firsttimeFilterRange");
-            var midfreFilterRange = Variables.get("midfreFilterRange");
+            var filterRanges = Variables.get("filterRanges");
             console.time(1);
 
             var filters = [];
-            if(bandwidthFilterRange) {
-                var filter = {}
-                filter['range'] = bandwidthFilterRange;
-                filter['name'] = 'Bandwidth(dB)';//'bandwidth';
-                filters.push(filter);
+            for(var i in filterRanges){
+                var t_range = filterRanges[i];
+                if(t_range){
+                    var filter = {
+                        name: i,
+                        range: filterRanges[i],
+                    };
+                    if(i == "timeDate"){
+                        var t_shift = 8 * 3600 * 1000;
+                        filter.range[0] += t_shift;
+                        filter.range[1] += t_shift;
+                    }
+                    filters.push(filter);
+                }
             }
-            if(scopeFilterRange) {
-                var filter = {}
-                filter['range'] = scopeFilterRange;
-                filter['name'] = 'Scope(dBm)';//'scope';
-                filters.push(filter);
-            }
-            if(carriernoiseFilterRange) {
-                var filter = {}
-                filter['range'] = carriernoiseFilterRange;
-                filter['name'] = 'Carriernoise(dB)';//'carriernoise';
-                filters.push(filter);
-            }
-            if(firsttimeFilterRange) {
-                var filter = {}, t_timeFilter = [];
-                var t_timeShift = 8*3600*1000;
-                t_timeFilter[0] = firsttimeFilterRange[0] + t_timeShift;
-                t_timeFilter[1] = firsttimeFilterRange[1] + t_timeShift;
-                filter['range'] = t_timeFilter;
-                filter['name'] = 'FirsttimeDate';//'firsttime';
-                filters.push(filter);
-            }
-            if(midfreFilterRange) {
-                var filter = {}
-                filter['range'] = midfreFilterRange;
-                filter['name'] = 'Midfrequency(MHz)';//'midfre';
-                filters.push(filter);
-            }
-            console.log(filters)
             if(filters.length == 0) {
                 Variables.set("filterSignals", null);
             }
@@ -499,7 +377,7 @@
         },
 
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
-            var t_table = Config.get("dataTable");
+            var t_table = Config.getData("dataTable");
             $.ajax({
                 url: "/query?"+JSON.stringify({
                     table: t_table,

@@ -36,7 +36,7 @@ define([
               if(filterSignals){
 				  Variables.set("zoominFirsttimeFilterRange",null);
                   Variables.set("zoominMidfreFilterRange",null);
-                  
+
                   self.xAxisScale.domain([self.x0,self.x1]);
                   self.yAxisScale.domain([self.y1,self.y0]);
                   self.d3el.selectAll('.row').style("display", "none");
@@ -74,7 +74,7 @@ define([
              self.mainRegin.transition().duration(500)
                     .select(".y.axis")
                     .call(self.yAxis);
-                    
+
              var brush_scatter = d3.svg.brush()
                  	.x(self.xAxisScale)
                 	 	.y(self.yAxisScale)
@@ -199,7 +199,7 @@ define([
               .attr("dy", ".7em")
               .style("text-anchor", "end")
               .text("中心频率(MHz)");
-              
+
             //drawHeatmap();
 //heatmap
 	//function drawHeatmap(){
@@ -219,7 +219,7 @@ define([
              .style("fill", function(d) {
                     if(d.value == 0)
                       return "white";
-                    else 
+                    else
                       return self.colorScale(d.value);
              })
              .on("mouseover", function(d) {
@@ -256,12 +256,12 @@ define([
             self.symbol = d3.svg.symbol().type('triangle-up')
                 .size(100);
             //drawTimeline();
-                
+
 		     //function drawTimeline(){
 		        self.timeFocus = self.mainRegin.append("g")
 		            .attr("class", "timeFocus")
 		            .style("display", "none");
-		
+
 		        self.timeFocus.append("line")
 		            .attr("y1", 0)
 		            .attr('y2', self.chartHeight)
@@ -271,12 +271,12 @@ define([
 		            .style('stroke','#fb9235')
 		            .style("stroke-dasharray", ("6, 6"))
                 		.style("stroke-width", 2.5);
-		
+
 		        self.timeFocus.append("text")
 		            .attr("dy", ".35em")
 		            .attr('text-anchor','middle')
 		            .style('fill','#fb9235');
-		            
+
 		        self.mainRegin.append("rect")
 	                .attr("class", "overlay")
 	                .attr("transform", "translate(0," + self.chartHeight + ")")
@@ -289,13 +289,13 @@ define([
 	                .on("mouseout", function() { self.timeFocus.style("display", "none"); })
 	                .on("mousemove", mousemove)
 	                .on('mousedown',drawlinechart);
-		            
+
 		        var trangle = self.timeFocus.append('path')
 		            .attr("transform", "translate(0," + (self.chartHeight+3) + ")")
 		            .attr('d',self.symbol)
 		            .attr('fill','#fb9235');
 		     //}
-//时间定位线 END         
+//时间定位线 END
 //频谱图
                 self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_width * 0.05, left: t_height * 0.05};
                 self.Width_line = self.$el.width() - self.margin_line.left - self.margin_line.right;
@@ -318,11 +318,11 @@ define([
                 var line = d3.svg.line()
                     .x(function(d) { return x_line(d.midfre); })
                     .y(function(d) { return y_line(d.scope); });
-                    
+
                 self.svg_line = self.d3el.append("g")
                     .attr("transform", "translate(" + self.margin_line.left + "," + self.margin_line.top + ")")
                     .attr("class","svg_line");
-                    
+
                 var MidFre_Range = d3.extent(detailSignals, function(d) { return d.midfre; }),
                 		x_Number = 100,
                 		d_MidFre = (MidFre_Range[1] - MidFre_Range[0]) / x_Number;
@@ -330,7 +330,7 @@ define([
                 x_line.domain(MidFre_Range);
                 y_line.domain(d3.extent(detailSignals, function(d) { return d.scope; }));
                 var min_scope = y_line.domain()[0];
-                
+
                  self.svg_line.append("g")
                       .attr("class", "x axis")
                       .attr("transform", "translate(0," + self.Height_line + ")")
@@ -357,11 +357,11 @@ define([
 				d3.select('.line_title').remove();
 
                 self.svg_line.append('g')
-                  .attr("transform", "translate(" + self.Width_line/4 + ",10)")      
+                  .attr("transform", "translate(" + self.Width_line/4 + ",10)")
                 .append("text")
                   .style("text-anchor", "middle")
                   .attr("class","line_title")
-                  .text("时间：" + x_time);          
+                  .text("时间：" + x_time);
 
                   var filterData = detailSignals.filter(function(d){
                       var timeStamp = new Date(d.firsttime).toTimeString().substr(0,5);
@@ -374,13 +374,13 @@ define([
                   filterData.sort(function(a,b){
                       return b.midfre - a.midfre;
                   });
-                  
+
                   filterData.forEach(function(f){
                   	  var new_band = f.bandwidth/1000;
                   	  var left_point = {x: x_line(f.midfre-(new_band/2)), y: y_line(min_scope)};
                   	  var mid_point = {x: x_line(f.midfre), y: y_line(f.scope)};
                   	  var right_point = {x: x_line(f.midfre+(new_band/2)), y: y_line(min_scope)};
-                  	 
+
                   	  self.svg_line.append("line")
 	                      .attr("class", "line")
 	                      .attr("x1", left_point.x)
@@ -392,7 +392,7 @@ define([
 	                      .style("stroke-width",1)
 	                      .on('mouseover',function(){line_showTooltip(f);})
                     		  .on('mouseout',function(){line_hideTooltip(f);});;
-	                      
+
 	                  self.svg_line.append("line")
 	                      .attr("class", "line")
 	                      .attr("x1", right_point.x)
@@ -405,8 +405,8 @@ define([
 	                      .on('mouseover',function(){line_showTooltip(f);})
                     		  .on('mouseout',function(){line_hideTooltip(f);});;
                   })
-                  
-             function line_showTooltip(node){                  
+
+             function line_showTooltip(node){
 
                    var tooltip_scatter = self.svg_line.append("g")
                       .attr("class", "tooltip_scatter");
@@ -436,13 +436,13 @@ define([
 //                    .style('stroke','grey')
 //                    .style("stroke-dasharray", ("3, 3"));
                 }
-   
+
              function line_hideTooltip(node,thisNode){
-                  d3.selectAll(".tooltip_scatter").remove();                 
+                  d3.selectAll(".tooltip_scatter").remove();
                 }
 
 //                var new_filterData = [];
-//                
+//
 //           	  for(var i=0;i<x_Number;i++){
 //           	  	var x_Midfre = MidFre_Range[0] + d_MidFre * i;
 //           	  	var y_scope = 0;
@@ -456,10 +456,10 @@ define([
 //           	  	}
 //						new_filterData.push({midfre: x_Midfre, scope: y_scope/1000 - 120});
 //           	  }
-//           	  
+//
 //           	  var scope= d3.extent(new_filterData, function(d) { return d.scope; })
 //           	  console.log(scope);
-//                    
+//
 //                self.svg_line.append("path")
 //                    .datum(filterData)
 //                    .attr("class", "line")
@@ -486,7 +486,7 @@ define([
 		           .attr("stroke","#fff")
 		           .attr("fill-opacity",.125)
 		           .attr('height', 15);
-		
+
 		        self.mainRegin.append("g")
 		           .attr("class", "brush2")
 		           .call(brush2)
@@ -495,7 +495,7 @@ define([
 		           .attr("stroke","#fff")
 		           .attr("fill-opacity",.125)
 		           .attr('width', 15);
-       	//	}	
+       	//	}
 //brush END
 //zoom btn
 			self.mainRegin.append('svg:foreignObject')
@@ -505,14 +505,14 @@ define([
 				    .append("xhtml:body")
 				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-plus"></i></span>')
 				    .on('click',zoomin);
-    			
+
     			self.mainRegin.append('svg:foreignObject')
 					.attr("transform", "translate("+ (self.chartWidth-20) + ",-20)")
 				    .attr("width", 50)
 				    .attr("height", 50)
 				    .append("xhtml:body")
 				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-minus"></i></span>')
-				    .on('click',zoomout);				   
+				    .on('click',zoomout);
 //zoom btn END
 //change opacity when brushing
                 function brushmove() {
@@ -534,13 +534,13 @@ define([
                       if(brush1.empty()) {
                         if(self.yScale(d.gridrow) >= brush2_ed && self.yScale(d.gridrow) <= brush2_st)
                             return 1;
-                        else 
+                        else
                             return .1;
                       }
                       else {
                         if(self.xScale(d.gridcol) >= brush1_st && self.xScale(d.gridcol) <= brush1_ed && self.yScale(d.gridrow) >= brush2_ed && self.yScale(d.gridrow) <= brush2_st)
                             return 1;
-                        else 
+                        else
                             return .1;
                       }
                   });
@@ -551,7 +551,7 @@ define([
                 }
 //change opacity when brushing END
 //zoom function
-                function zoomin() {                		
+                function zoomin() {
                     if(self.have_zoomin == 0) {
                       var extent1 = brush1.extent();
                           self.x0 = extent1[0],
@@ -570,23 +570,24 @@ define([
                             brushyRange.push(self.y1);
 
                       if(brush1.empty()) {
-                        Variables.set("firsttimeFilterRange",null);
+                        Variables.setFilterRange("timeDate", null);
                       }
 
                       else {
-                        Variables.set("firsttimeFilterRange",brushxRange);
+                        Variables.setFilterRange("timeDate", brushxRange, true);
                       }
 
                       if(brush2.empty()) {
-                        Variables.set("midfreFilterRange",null);
+                        Variables.setFilterRange("freq", null);
                       }
 
                       else {
-                        Variables.set("midfreFilterRange",brushyRange);
+                        Variables.setFilterRange("freq", brushyRange, true);
                       }
-                      
+
                       if(!brush1.empty() && !brush2.empty()) {
                           Variables.set("mode","zoomin");
+                          Variables.triggerFilter();
                       }
 
                       d3.select(".brush1").style("display", "none");
@@ -621,7 +622,7 @@ define([
                     reset_yaxis();
 
                 }
-                
+
                 function reset_xaxis() {
                   self.mainRegin.transition().duration(500)
                        .select(".x.axis")

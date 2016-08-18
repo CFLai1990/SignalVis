@@ -25,10 +25,7 @@ define([
         {
             var self = this;
             options = options || {};
-            if(options.theTitle){
-                this.theTitle = options.theTitle;
-                console.log(this.theTitle);
-            }
+            self.theTitle = Config.get("chineseAttrNames")[self.model.get("attrName")];
             self.listenTo(self.model,"change:filterBins", function(model, filterBins){
                 self.d3el.selectAll(".filterBin").remove();
 
@@ -273,7 +270,7 @@ define([
                                     .on("brushend", function(){
                                         var filterRangeName = self.model.get("filterRangeName");
                                         if(self.brush.empty()) {
-                                            Variables.set(filterRangeName,null);
+                                            Variables.setFilterRange(filterRangeName, null);
                                         }
                                         else {
                                             var extent = self.brush.extent();
@@ -281,7 +278,7 @@ define([
                                             brushRange.push(extent[0]);
                                             brushRange.push(extent[1]);
                                             console.log(filterRangeName, brushRange);
-                                            Variables.set(filterRangeName,brushRange);
+                                            Variables.setFilterRange(filterRangeName, brushRange);
                                         }
                                     });
 

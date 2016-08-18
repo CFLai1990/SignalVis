@@ -17,21 +17,25 @@ define([
             "maxTime":-1, //
             "minMidfre":-1, //
             "maxMidfre":-1, //
-            "bandwidthRange":null,
-            "scopeRange":null,
-            "carriernoiseRange":null,
+            // "bandwidthRange":null,
+            // "scopeRange":null,
+            // "carriernoiseRange":null,
+            "ranges": {},
         },
         initialize:function(options) {
-            this.set("bandwidthRange",options.bandwidthRange);
-            this.set("scopeRange",options.scopeRange);
-            this.set("carriernoiseRange",options.carriernoiseRange);
+            for(var i in options){
+                this.get("ranges")[i] = options[i];
+            }
+            // this.set("bandwidthRange",options.bandwidthRange);
+            // this.set("scopeRange",options.scopeRange);
+            // this.set("carriernoiseRange",options.carriernoiseRange);
         }
     });
     detailSignals.Collection = Backbone.Collection.extend({
         model: detailSignals.Model,
         initialize: function(models, options) {
             var self = this;
-            _.extend(this, _.pick(options, 'bandwidthRange', 'scopeRange',"carriernoiseRange"));
+            _.extend(this, _.pick(options, 'bandwidth', 'scope',"carriernoise"));
         }
     });
     return detailSignals;
