@@ -37,27 +37,8 @@ define([
                 self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                         self.onChangeFilterSignals(filterSignals);
                 });
-                // self.listenTo(Variables,"change:bandwidthFilterRange", function(model,bandwidthFilterRange){
-                //         self.updateBandwithRangeText();
-                // });
-                // self.listenTo(Variables,"change:scopeFilterRange", function(model,scopeFilterRange){
-                //         self.updateScopeRangeText();
-                // });
-                // self.listenTo(Variables,"change:carriernoiseFilterRange", function(model,carriernoiseFilterRange){
-                //         self.updateCarriernoiseRangeText();
-                // });
-                // self.listenTo(Variables,"change:firsttimeFilterRange", function(model,carriernoiseFilterRange){
-                //         self.updateTimeRangeText();
-                // });
-                // self.listenTo(Variables,"change:midfreFilterRange", function(model,midfreFilterRange){
-                //         self.updateMidfreRangeText();
-                // });
                 self.listenTo(Variables, "changeFilterRange",  function(model,midfreFilterRange){
-                        self.updateBandwithRangeText();
-                        self.updateScopeRangeText();
-                        self.updateCarriernoiseRangeText();
-                        self.updateTimeRangeText();
-                        self.updateMidfreRangeText();
+                        self.updateMidTexts();
                 });
 
 
@@ -101,13 +82,58 @@ define([
             },
             onShow:function() {
                     this.$el.find("#signalNum").text(Datacenter.get("signals").length);
-                    this.updateBandwithRangeText();
-                    this.updateScopeRangeText();
-                    this.updateCarriernoiseRangeText();
-                    this.updateTimeRangeText();
-                    this.updateMidfreRangeText();
+                    this.updateMidTexts();
                     this.showChildView("sizeLeg", new OverviewLeg());
             },
+
+            updateMidTexts: function(){
+                var t_attrs = Config.get("attrs"), t_range, self = this;
+                for(var i in t_attrs){
+                    var t_atobj = t_attrs[i];
+                    if(t_atobj.text){
+                        t_range = Variables.get("filterRanges")[t_atobj.attr];
+                        if(!t_range){
+                            switch(i){
+                                case "firsttime":
+                                    t_range = Datacenter.get("timeRange");
+                                break;
+                                case "midfre":
+                                    t_range = Datacenter.get("midfreRange");
+                                break;
+                                default:
+                                    t_range = Datacenter.get("barcharts")[i];
+                                    if(t_range){
+                                        t_range = t_range.get("xRange");
+                                    }
+                                break;
+                            }
+                        }
+                        if(!t_range){
+                            console.log("No attribute: " + i);
+                            this.$el.find("."+t_atobj.text).css("display", "none");
+                        }else{
+                            var rangeText;
+                            switch(t_atobj.type){
+                                case "int":
+                                    rangeText = parseInt(t_range[0]) +
+                                    " ~ " + parseInt(t_range[1]);
+                                break;
+                                case "float":
+                                    rangeText = t_range[0].toFixed(3) +
+                                    " ~ " + t_range[1].toFixed(3);
+                                break;
+                                case "time":
+                                    rangeText = new Date(t_range[0]).toTimeString().substring(0,8) +
+                                    " ~ " + new Date(t_range[1]).toTimeString().substring(0,8);
+                                break;
+                            }
+                            this.$el.find("#"+t_atobj.text).text(rangeText);
+                        }
+                    }else{
+                    }
+                }
+            },
+
             updateTimeRangeText:function() {
                 var filterRange = Variables.get("filterRanges")["time"];
                 if(filterRange) {

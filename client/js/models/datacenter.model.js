@@ -235,7 +235,7 @@
             var self =this;
             var scatterplotModel = new ScatterPlotModel({
                 "xModel": self.get("barcharts")["bandwidth"],
-                "yModel": self.get("barcharts")["carriernoise"],
+                "yModel": self.get("barcharts")["signalnoise"],
                 "filterSignals": self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
@@ -392,7 +392,7 @@
                     if(v_deferred) v_deferred.resolve();
                 },
                 error: function(err){
-                    console.log("Query Error!", err);
+                    console.log("Query Error!", err, v_condition);
                 },
             });
         },

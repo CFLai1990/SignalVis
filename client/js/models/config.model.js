@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "950MHz",
+            "currentData": "signal",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: "normMidfrequency"},
@@ -56,10 +56,12 @@ define([
                 "signalnoise": "信噪比",
             },
             "attrs": {
-                "bandwidth": {"attr": "baud", "scale": "power"},
-                "scope": {"attr": "scope", "scale": "linear"},
-                "carriernoise": {"attr": "carriernoise", "scale": "linear"},
-                "signalnoise": {"attr": "snr", "scale": "linear"},
+                "bandwidth": {"attr": "baud", "scale": "power", type: "float", text: "bandwidthRangeText"},
+                "scope": {"attr": "scope", "scale": "linear", type: "int", text: "scopeRangeText"},
+                "carriernoise": {"attr": "carriernoise", "scale": "linear", type: "int", text: "carriernoiseRangeText"},
+                "signalnoise": {"attr": "snr", "scale": "linear", type: "int", text: "signalnoiseRangeText"},
+                "midfre": {"attr": "freq", "scale": "linear", type: "float", text: "firsttimeRangeText"},
+                "firsttime": {"attr": "timeDate", "scale": "time", type: "time", text: "midfreRangeText"},
             },
             "pixel": {
                 "attrs": [
