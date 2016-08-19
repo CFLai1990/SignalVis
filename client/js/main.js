@@ -21,7 +21,7 @@ require.config({
         'marionette': ['../bower_components/backbone.marionette/lib/backbone.marionette.min'],
         'backbone.relational': ['../bower_components/backbone-relational/backbone-relational'],
         'backbone.routefilter': '../bower_components/backbone.routefilter/dist/backbone.routefilter.min',
-        'd3': ['../bower_components/d3/d3.min'],
+        'd3': ['../bower_components/d3/d3'],
         'nprogress': ['../bower_components/nprogress/nprogress'],
         'highstock': ['../bower_components/highstock/js/highstock.src'],
         "contextMenu":['../bower_components/contextMenu/contextMenu.min'],

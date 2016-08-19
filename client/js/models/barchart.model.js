@@ -117,11 +117,25 @@ define([
                 filterBins.push(0);
             }
             if(filterSignals) {
-                for(var i=0;i<filterSignals.length;i++) {
-                    var binIndex = parseInt((filterSignals[i][attrName] - xmin)/binRange);
-                    if(binIndex >=numOfBins)
-                        binIndex = numOfBins - 1;
-                    filterBins[binIndex]  = filterBins[binIndex] + 1;
+                if(self.get("category")){
+                    var t_dict = self.get("dictionary").entries(), 
+                    t_name = self.get("attrName");
+                    _.filter(filterSignals, function(t_d){
+                        var tt_d = t_d[t_name];
+                        for(var i in t_dict){
+                            if(tt_d == t_dict[i].value.num){
+                                filterBins[i] ++;
+                                break;
+                            }
+                        }
+                    });
+                }else{
+                    for(var i=0;i<filterSignals.length;i++) {
+                        var binIndex = parseInt((filterSignals[i][attrName] - xmin)/binRange);
+                        if(binIndex >=numOfBins)
+                            binIndex = numOfBins - 1;
+                        filterBins[binIndex]  = filterBins[binIndex] + 1;
+                    }
                 }
             }
             else {

@@ -13,7 +13,7 @@ function barchart(v_callback, v_parameters){
 		var t_key = v_parameters.key, t_bins = v_parameters.bins;
 		var t_data = t_sort(v_data, t_key);
 		var t_min = t_data[0][t_key], t_max = t_data[t_data.length - 1][t_key];
-        var t_binRange = (t_max - t_min)/t_bins
+        var t_binRange = (t_max - t_min)/t_bins;
         var t_binCount = [];
         for(var i = 0; i < t_bins; i++){
         	t_binCount.push(0);

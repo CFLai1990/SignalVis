@@ -598,12 +598,16 @@ define([
                 }
 
                 function zoomout(){
-                    Variables.set("midfreFilterRange",null);
-                    Variables.set("firsttimeFilterRange",null);
+                    Variables.setFilterRange("freq", null);
+                    Variables.setFilterRange("timeDate", null);
                     Variables.set("zoominFirsttimeFilterRange",null);
                     Variables.set("zoominMidfreFilterRange",null);
                     Variables.set("mode","zoomout");
+                    Variables.triggerFilter();
                     self.have_zoomin = 0;
+                    brush1.extent([0,0]);
+                    brush2.extent([0,0]);
+                    d3.selectAll(".grid").style("opacity", 1);
 
                     self.d3el.selectAll(".scatter").remove();
                     self.d3el.selectAll(".point").remove();
@@ -611,7 +615,9 @@ define([
                     self.d3el.selectAll('.row').style("display", null);
                   	self.d3el.selectAll('.grid').style("display", null);
                   	d3.select(".brush1").style("display", null);
+                    d3.select(".brush1 .extent").attr("width", 0);
                     d3.select(".brush2").style("display", null);
+                    d3.select(".brush2 .extent").attr("height", 0);
 //                  self.d3el.select('.timeFocus').remove();
 //                  self.d3el.select('.overlay').remove();
 

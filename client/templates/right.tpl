@@ -28,11 +28,12 @@
       </ul>
     </div> -->
     <div id="dimensionBtns" class="buttonGroup">
-          <span class="button" id = "hdMidfrequency" data-value="midfrequency" data-tooltip="Scope">中心频率</span>
-          <span class="button" id = "hdFirsttime" data-value="firsttime" data-tooltip="Carriernoise">发现时间</span>
-          <span class="button" id = "hdBandwidth" data-value="bandwidth" data-tooltip="Bandwidth">带宽</span>
-          <span class="button" id = "hdScope" data-value="scope" data-tooltip="Scope">能量</span>
-          <span class="button" id = "hdCarriernoise" data-value="carriernoise" data-tooltip="Carriernoise">载噪比</span>
+          <span class="button fixed" id = "hdmidfre" data-value="midfre" data-tooltip="Scope">中心频率</span>
+          <span class="button fixed" id = "hdfirsttime" data-value="firsttime" data-tooltip="Carriernoise">发现时间</span>
+          <span class="button" id = "hdbandwidth" data-value="bandwidth" data-tooltip="Bandwidth">带宽</span>
+          <span class="button" id = "hdscope" data-value="scope" data-tooltip="Scope">能量</span>
+          <span class="button" id = "hdcarriernoise" data-value="carriernoise" data-tooltip="Carriernoise">载噪比</span>
+          <span class="button" id = "hdsignalnoise" data-value="signalnoise" data-tooltip="Carriernoise">信噪比</span>
     </div>
   </div>
 

@@ -30,7 +30,7 @@ define([
             events :{
                 // "click #x_dropdown li a": "changeX",
                 // "click #y_dropdown li a": "changeY",
-                "click #dimensionBtns .button":"taggleDimension",
+                "click #dimensionBtns .button":"toggleDimension",
                 "mouseover .button": "onMouOverBtn",
                 "mouseout .button": "onMouOutBtn",
             },
@@ -55,13 +55,6 @@ define([
                 var self = this;
                 self.initHDBtns();
                 var t_bts = Datacenter.get("barcharts");
-                // for(var i in t_bts){
-                //     self.showChildView(i, new BarChartLayoutView({
-                //         model: t_bts[i],
-                //         id: i + "BarChart",
-                //         theTitle: Config.get("chineseAttrNames")[i] + "分布",
-                //     }))
-                // }
                 self.showChildView('attributesView', new BarChartLayoutView({
                     id: "attributes",
                 }));
@@ -87,38 +80,49 @@ define([
             },
 
             initHDBtns:function(){
-                var highdimension = Datacenter.get("highdimension");
-                if(highdimension.get("bandwidthActive"))
-                    this.$el.find("#hdBandwidth").addClass("active");
-                if(highdimension.get("midFrequencyActive"))
-                    this.$el.find("#hdMidFrequency").addClass("active");
-                if(highdimension.get("firsttimeActive"))
-                    this.$el.find("#hdFirsttime").addClass("active");
-                if(highdimension.get("scopeActive"))
-                    this.$el.find("#hdScope").addClass("active");
-                if(highdimension.get("carriernoiseActive"))
-                    this.$el.find("#hdCarriernoise").addClass("active");
+                var self = this, t_dims = Variables.get("dimensions");
+                $("#dimensionBtns .button").addClass("hdhidden");
+                for(var i in t_dims){
+                    self.$el.find("#hd"+i).removeClass("hdhidden");
+                    if(t_dims[i]){
+                        self.$el.find("#hd"+i).addClass("active");
+                    }else{
+                        self.$el.find("#hd"+i).removeClass("active");
+                    }
+                }
+                // var highdimension = Datacenter.get("highdimension");
+                // if(highdimension.get("bandwidthActive"))
+                //     this.$el.find("#hdBandwidth").addClass("active");
+                // if(highdimension.get("midFrequencyActive"))
+                //     this.$el.find("#hdMidFrequency").addClass("active");
+                // if(highdimension.get("firsttimeActive"))
+                //     this.$el.find("#hdFirsttime").addClass("active");
+                // if(highdimension.get("scopeActive"))
+                //     this.$el.find("#hdScope").addClass("active");
+                // if(highdimension.get("carriernoiseActive"))
+                //     this.$el.find("#hdCarriernoise").addClass("active");
             },
 
-            taggleDimension: function(evt) {
+            toggleDimension: function(evt) {
                 var attr = evt.target.getAttribute("data-value");
                 var highdimension = Datacenter.get("highdimension");
                 var dimCount = highdimension.getNumActiveDims();
-                var modelAttrName = attr+ "Active";
-                console.log(modelAttrName);
-                if(highdimension.get(modelAttrName)) {
+                if(Variables.get("dimensions")[attr]) {
                     if(dimCount <= 2) {
                         alert("The Number of selected dimensions should be >= 2");
                     }
                     else {
+                        var t_attr = {};
+                        t_attr[attr] = false;
                         $(evt.target).removeClass("active");
-                        highdimension.set(modelAttrName,false);
-
+                        Variables.toggleDimensions(t_attr, true);
                     }
                 }
                 else {
+                    var t_attr = {};
+                    t_attr[attr] = true;
                     $(evt.target).addClass("active");
-                    highdimension.set(modelAttrName,true);
+                    Variables.toggleDimensions(t_attr, true);
                 }
             },
     });

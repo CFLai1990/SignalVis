@@ -36,6 +36,7 @@ define([
             "scopeFilterArr":null,
             "carriernoiseFilterArr":null,
 
+            "dimensions": {},
         },
 
         initialize: function(){
@@ -53,7 +54,31 @@ define([
         triggerFilter: function(){
             var self = this;
             self.trigger("changeFilterRange");
-        }
+        },
+
+        getDimensions: function(v_dims){
+            var self = this;
+            for(var i in v_dims){
+                var t_sign = false, t_i = v_dims[i];
+                if(t_i == "midfre" || t_i == "firsttime"){
+                    t_sign = true;
+                }
+                self.get("dimensions")[t_i] = t_sign;
+            }
+        },
+
+        toggleDimensions: function(v_dims, v_trigger){
+            var self = this, t_dims = self.get("dimensions");
+            for(var i in v_dims){
+                var t_state = t_dims[i];
+                if(t_state != null){
+                    t_dims[i] = v_dims[i];
+                }
+            }
+            if(v_trigger){
+                self.trigger("subspaceChange", self.dimensions);
+            }
+        },
 
     }))();
 });

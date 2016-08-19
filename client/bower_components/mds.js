@@ -59,6 +59,9 @@
 
 	function getCoordinates(s){
 		var td=dim(s), n = td[0], d = td[1];
+		if(d == 2){
+			return [[0,1],[1,0]];
+		}
 		var data=trans(s);
 
 		for(var i=0;i<d;i++){
@@ -145,7 +148,14 @@
 			var Mean=sum(r)/d[0];
 			r=sub(r,Mean);
 			var Norm=norm2(r);
-			data[i]=div(r,Norm);
+			if(Norm!=0){
+				data[i]=div(r,Norm);
+			}
+			else{
+				var t_r=Math.sqrt(1/d[0]);
+				for(var j=0;j<d[0];j++)
+					data[i][j] = 0;
+			}
 		}
 
 		return trans(data);

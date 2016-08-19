@@ -81,12 +81,12 @@
             // self.listenTo(Variables,"change:mode", queryFunc);
             // self.listenTo(Variables,"change:firsttimeFilterRange", queryFunc);
             // self.listenTo(Variables,"change:midfreFilterRange", queryFunc);
-            // self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
-            //         self.updateDetailSignals();
-            // });
-            // self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
-            //         self.updateDetailSignals();
-            // });
+            self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
+                    self.updateDetailSignals();
+            });
+            self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
+                    self.updateDetailSignals();
+            });
             self.set("barchartCollection", new barchartCollection());
         },
 
@@ -103,7 +103,7 @@
 
             $.when(readPreComputeDef).done(function(){
                 console.log('finish reading data');
-                self.setScatterPlot();
+                // self.setScatterPlot();
                 self.setHighDimension();
                 self.setDetailSignals();
                 // self.addDetailSignal(181,263);
@@ -116,14 +116,14 @@
             var self = this;
             d3.csv(Config.getData("localPath"), function(data) {
                 var t_list = Config.get("nameList"), t_keys = _.keys(data[0]);
-                var t_signals = [], t_data = [];
+                var t_signals = [], t_data = [], t_names = [], t_cate = {}, t_dicts = {};
                 for(var i =0;i<data.length;i++) {
                     var signal = data[i];
                     var tmp = {}, t_dt = [];
                     for(var j in signal){
                         var t_attr = t_list[j];
                         if(!t_attr || !t_attr.name) continue;
-                        var t_d = signal[j];
+                        var t_d = signal[j], t_name = t_attr.name;
                         switch(t_attr.type){
                             case "float":
                                 t_d = parseFloat(t_d);
@@ -134,20 +134,43 @@
                             case "time":
                                 t_d = new Date(t_d).getTime();
                             break;
+                            case "category":
+                                if(!t_cate[t_name]){
+                                    t_cate[t_name] = 1;
+                                    t_dicts[t_name] = d3.map();
+                                }
+                                var tt_dict = t_dicts[t_name],
+                                t_num = t_cate[t_name];
+                                if(t_d == "" || t_d == undefined){
+                                    t_d = "NaN";
+                                }
+                                if(!tt_dict.has(t_d)){
+                                    tt_dict.set(t_d, {num: t_num, count: 0});
+                                    t_cate[t_name]++;
+                                }
+                                var t_dc = tt_dict.get(t_d);
+                                t_d = t_dc.num;
+                                t_dc.count++;
+                            break;
                         }
                         tmp[t_attr.name] = t_d;
-                        t_dt.push(t_d);
+                        if(t_attr.norm){
+                            t_dt.push(t_d);
+                        }
                     }
                     t_data.push(t_dt);
                     t_signals.push(tmp);
                 }
+                Config.set("dictionary", t_dicts);
                 t_data = MDS.normalizeData(t_data);
                 for(var i = 0; i < t_data.length; i++){
                     var t_j = 0, tt_data = t_data[i];
-                    for(var j in t_list){
+                    var signal = data[i];
+                    for(var j in signal){
                         var t_attr = t_list[j];
+                        if(!t_attr || !t_attr.name) continue;
                         if(t_attr.norm){
-                            t_signals[i][t_attr.norm] = tt_data[t_j];
+                            t_signals[i]["norm" + t_attr.name] = tt_data[t_j];
                             t_j++;
                         }
                     }
@@ -158,7 +181,7 @@
         },
 
         readPreCompute: function(def) {
-            var self = this, t_signals = self.get("signals"), t_keys = _.keys(t_signals[0]);
+            var self = this, t_signals = self.get("signals"), t_keys = _.keys(t_signals[0]).reverse();
             var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
             var t_time = d3.extent(_.map(t_signals, "firsttime")),
             t_freq = d3.extent(_.map(t_signals, "midfre"));
@@ -169,6 +192,7 @@
             self.set("minMidfre",t_freq[0]);
             self.set("maxMidfre",t_freq[1]);
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
+            console.log(t_keys);
             for(var i in t_keys){
                 var t_i = t_keys[i];
                 if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
@@ -180,7 +204,7 @@
                 }
                 var tt_tds = $.Deferred();
                 t_tds.push(tt_tds.promise());
-                self.setBarChart(t_i, t_a.attr, t_a.scale, tt_tds);
+                self.setBarChart(t_i, t_a.attr, t_a.type, t_a.scale, tt_tds);
             }
             var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
@@ -190,29 +214,59 @@
             .then(function(){def.resolve();});
         },
 
-        setBarChart: function(v_name, v_attr, v_scale, v_td){
-            var self = this, t_condition = [{
-                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
-            }];
-            t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
-            self.queryFromDB("barchart", t_condition,
-                function(v_d){
-                    var t_barchart = new BarchartModel({
-                        "attrName": v_name,
-                        "numOfBins": v_d.binNumber,
-                        "totalBins": v_d.binCount,
-                        "xRange": v_d.xRange,
-                        "yRange": v_d.yRange,
-                        "filterRangeName": v_attr,
-                        "scale": v_scale,
-                    });
-                    self.get("barcharts")[v_name] = t_barchart;
-                    self.get("barchartCollection").add(t_barchart);
-                    Variables.get("filterRanges")[v_attr] = null;
-                }, v_td, {
-                    key: v_attr,
-                    bins: Config.get("barchart").bins,
+        setBarChart: function(v_name, v_attr, v_type, v_scale, v_td){
+            var self = this;
+            if(v_type == "category"){
+                var t_dict = Config.get("dictionary")[v_name].entries(), t_keys = [], t_bins = [];
+                for(var i in t_dict){
+                    var tt_dict = t_dict[i];
+                    t_keys[i] = tt_dict.key;
+                    t_bins[i] = tt_dict.value.count;
+                }
+                if(t_keys.length == 1){
+                    t_keys.push("");
+                    t_bins.push(0);
+                }
+                var t_barchart = new BarchartModel({
+                    "attrName": v_name,
+                    "numOfBins": t_bins.length,
+                    "totalBins": t_bins,
+                    "xRange": t_keys,
+                    "yRange": [_.min(t_bins), _.max(t_bins)],
+                    "filterRangeName": v_attr,
+                    "scale": v_scale,
+                    "dictionary": Config.get("dictionary")[v_name],
+                    "category": true,
                 });
+                self.get("barcharts")[v_name] = t_barchart;
+                self.get("barchartCollection").add(t_barchart);
+                Variables.get("filterRanges")[v_attr] = null;
+                v_td.resolve();
+            }else{
+                var t_condition = [{
+                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
+                }];
+                t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
+                self.queryFromDB("barchart", t_condition,
+                    function(v_d){
+                        var t_barchart = new BarchartModel({
+                            "attrName": v_name,
+                            "numOfBins": v_d.binNumber,
+                            "totalBins": v_d.binCount,
+                            "xRange": v_d.xRange,
+                            "yRange": v_d.yRange,
+                            "filterRangeName": v_attr,
+                            "scale": v_scale,
+                            "category": false,
+                        });
+                        self.get("barcharts")[v_name] = t_barchart;
+                        self.get("barchartCollection").add(t_barchart);
+                        Variables.get("filterRanges")[v_attr] = null;
+                    }, v_td, {
+                        key: v_attr,
+                        bins: Config.get("barchart").bins,
+                });
+            }            
         },
 
         setPixelMap: function(v_name, v_attr, v_subname, v_subattr, v_size, v_td){
@@ -235,21 +289,19 @@
             var self =this;
             var scatterplotModel = new ScatterPlotModel({
                 "xModel": self.get("barcharts")["bandwidth"],
-                "yModel": self.get("barcharts")["signalnoise"],
+                "yModel": self.get("barcharts")["carriernoise"],
                 "filterSignals": self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
         },
 
         setHighDimension:function() {
-            var self = this;
+            var self = this, t_keys = _.keys(self.get("barcharts"));
+            t_keys.push("midfre");
+            t_keys.push("firsttime");
             var highDimension = new HighDimension({
-                "midfrequencyActive": false,
-                "firsttimeActive": false,
-                "bandwidthActive": true,
-                "scopeActive": true,
-                "carriernoiseActive": true,
-            })
+                dimensions: t_keys
+            });
             self.set("highdimension",highDimension);
 
         },
@@ -305,7 +357,8 @@
 
         updateFilterArrWithoutInx: function(v_df) {
             var self = this;
-            var filterRanges = Variables.get("filterRanges");
+            var filterRanges = Variables.get("filterRanges"),
+            t_attrs = Config.get("nameList");
             console.time(1);
 
             var filters = [];
@@ -332,10 +385,17 @@
                 var signals = this.get("signals");
                 var t_condition = {};
                 for(var i in filters){
-                    var t_range = filters[i].range;
-                    t_condition[filters[i].name] = {
-                        '$gte': t_range[0],
-                        '$lte': t_range[1],
+                    var t_range = filters[i].range,
+                    t_name = filters[i].name;
+                    if(t_attrs[t_name].type == "category"){
+                        t_condition[t_name] = {
+                            '$in': t_range,
+                        }
+                    }else{
+                        t_condition[t_name] = {
+                            '$gte': t_range[0],
+                            '$lte': t_range[1],
+                        }
                     }
                 }
                 t_condition = {

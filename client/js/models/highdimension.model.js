@@ -41,105 +41,48 @@ define([
             //
         },
         initialize: function(options){
-
-            var self = this;
-            self.set("bandwidthActive",options.bandwidthActive);
-            self.set("midfrequencyActive",options.midfrequencyActive);
-            self.set("firsttimeActive",options.firsttimeActive);
-            self.set("scopeActive",options.scopeActive);
-            self.set("carriernoiseActive",options.carriernoiseActive);
-
+            var self = this, t_d = options.dimensions;
+            Variables.getDimensions(options.dimensions);
+            self.listenTo(Variables, "subspaceChange", self.redraw);
             self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
-
                 self.set("filterSignals",filterSignals);
-                // console.log(filterSignals);
                 if(filterSignals && this.get("filterSignals").length > 5){
                     self.updateFilterSignalsArr();
                     self.dimRecution();
                     self.updateRange();
                 }
                 self.set("redraw",!self.get("redraw"));
-
             });
-
-            self.listenTo(self,"change:bandwidthActive", function(model, bandwidthActive){
-                if(this.get("filterSignals") && this.get("filterSignals").length > 5) {
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                    self.set("redraw",!self.get("redraw"));
-                }
-                // self.set("redraw",!self.get("redraw"));
-
-            });
-            self.listenTo(self,"change:firsttimeActive", function(model, firsttimeActive){
-                if(this.get("filterSignals")&& this.get("filterSignals").length > 5) {
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                    self.set("redraw",!self.get("redraw"));
-                }
-            });
-            self.listenTo(self,"change:midfrequencyActive", function(model, midFrequencyActive){
-                if(this.get("filterSignals")&& this.get("filterSignals").length > 5) {
-
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                    self.set("redraw",!self.get("redraw"));
-                }
-            });
-            self.listenTo(self,"change:scopeActive", function(model, scopeActive){
-                if(this.get("filterSignals")&& this.get("filterSignals").length > 5) {
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                    self.set("redraw",!self.get("redraw"));
-                }
-            });
-            self.listenTo(self,"change:carriernoiseActive", function(model, carriernoiseActive){
-                if(this.get("filterSignals")&& this.get("filterSignals").length > 5) {
-
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                    self.set("redraw",!self.get("redraw"));
-                }
-            });
-
         },
-        updateFilterSignalsArr: function() {
+
+        redraw: function(){
             var self = this;
-            var filterSignals = self.get("filterSignals");
+            var t_data = self.updateFilterSignalsArr();
+            var t_layout = self.dimRecution(t_data);
+            self.updateRange();
+            self.set("redraw",!self.get("redraw"));
+        },
+
+        updateFilterSignalsArr: function() {
+            var self = this, v_dims = Variables.get("dimensions");
+            var filterSignals = self.get("filterSignals"), t_arr = [];
             if(filterSignals) {
                 console.time("updateFilterSignalsArr");
-                var filterSignalsArr = [];
-                for(var i=0;i<filterSignals.length;i++) {
-                    var signalArr = [];
-                    var signal = filterSignals[i];
-                    if (this.get("bandwidthActive"))
-                        signalArr.push(signal.normBandwidth);
-                    if (this.get("midfrequencyActive"))
-                        signalArr.push(signal.normMidfrequency);
-                    if(this.get("firsttimeActive"))
-                        signalArr.push(signal.normFirsttime);
-                    if(this.get("scopeActive"))
-                        signalArr.push(signal.normScope);
-                    if(this.get("carriernoiseActive"))
-                        signalArr.push(signal.normCarriernoise);
-
-                    filterSignalsArr.push(signalArr);
+                for(var i in v_dims){
+                    if(v_dims[i]){
+                        console.log(i);
+                        var tt_arr = _.map(filterSignals, "norm" + i);
+                        t_arr.push(tt_arr);
+                    }
                 }
                 console.timeEnd("updateFilterSignalsArr");
-                self.set("filterSignalsArr",filterSignalsArr);
-                // console.log(filterSignalsArr);
+                self.set("filterSignalsArr", numeric.transpose(t_arr));
             }
-
             else{
                 self.set("filterSignalsArr",null);
             }
-
         },
+
         dimRecution: function() {
             var self = this;
             var filterSignalsArr = self.get("filterSignalsArr");
@@ -159,7 +102,6 @@ define([
             }
             else{
                 self.set("reductionSignals",null);
-
             }
         },
         updateRange: function() {
@@ -186,16 +128,11 @@ define([
         },
         getNumActiveDims:function() {
             var count = 0;
-            if (this.get("bandwidthActive"))
-                count++;
-            if (this.get("midfrequencyActive"))
-                count++;
-            if(this.get("firsttimeActive"))
-                count++;
-            if(this.get("scopeActive"))
-                count++;
-            if(this.get("carriernoiseActive"))
-                count++;
+            var t_dims = Variables.get("dimensions");
+            for(var i in t_dims){
+                if(t_dims[i])
+                    count++;
+            }
             return count;
         },
 

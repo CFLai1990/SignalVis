@@ -88,7 +88,8 @@ define([
             // console.log(reductionSignals)
             var t_ratio = Config.get("projection")["SampleRate"], t_samples;
             if(filterSignals && filterSignals.length > 5 && reductionSignals) {
-                t_samples = _.sample(reductionSignals, Math.round(reductionSignals.length * t_ratio));
+                var t_size = Math.round(Math.log10(reductionSignals.length));
+                t_samples = _.sample(reductionSignals, Math.round(reductionSignals.length * t_ratio[t_size]));
 
                 var nodeGroup = self.mainRegin.append("g").attr("class","nodes");
 
