@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "950MHz",
+            "currentData": "signal",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},
@@ -26,12 +26,15 @@ define([
                 "Modulationrate":{name: "rate", type: "category", norm: true},
                 "CsTran":{name: "tran", type: "category", norm: true},
                 "mark":{name: "mark", type: "category", norm: true},
+                "dbm":{name: "scopedbm", type: "int", norm: true},
                 "SignalType":{name: "sigtype", type: "category", norm: true},
+                "isdiff":{name: "diff", type: "category", norm: true},
+                "isDAOPU":{name: "daopu", type: "category", norm: true},
                 "isTDMA":{name: "tdma", type: "category", norm: true},
                 "location":{name: "location", type: "category", norm: true},
                 "demod":{name: "demod", type: "category", norm: true},
                 "demodrate":{name: null, type: "category", norm: true},
-                "inforate":{name: null, type: "category", norm: true},
+                "codeType":{name: "codetype", type: "category", norm: true},
             },
             "data": {
                 "950MHz": {
@@ -57,6 +60,7 @@ define([
             "chineseAttrNames": {
                 "bandwidth": "带宽",
                 "scope": "能量",
+                "scopedbm": "能量",
                 "carriernoise": "载噪比",
                 "signalnoise": "信噪比",
                 "count": "数目",
@@ -65,7 +69,10 @@ define([
                 "tran": "CsTran",
                 "mark": "mark",
                 "sigtype": "信号类型",
-                "tdma": "是否TDMA",
+                "tdma": "TDMA",
+                "diff": "isDiff",
+                "daopu": "倒谱",
+                "codetype": "CodeType",
                 "location": "地点",
                 "demod": "解调模式",
                 "demodrate": "解调速率",
@@ -89,6 +96,10 @@ define([
                 "demod": {"attr": "demod", "scale": "power", type: "category", text: null, hd: true},
                 "demodrate": {"attr": "demodrate", "scale": "power", type: "category", text: null, hd: true},
                 "inforate": {"attr": "inforate", "scale": "power", type: "category", text: null, hd: true},
+                "scopedbm": {"attr": "dbm","scale": "linear", type: "int", text: "scopedbmRangeText", hd: true},
+                "daopu": {"attr": "isDAOPU","scale": "power", type: "category", text: null, hd: true},
+                "diff": {"attr": "isdiff","scale": "power", type: "category", text: null, hd: true},
+                "codetype": {"attr": "codeType","scale": "power", type: "category", text: null, hd: true},
             },
             "pixel": {
                 "attrs": [

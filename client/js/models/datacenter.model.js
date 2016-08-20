@@ -244,11 +244,13 @@
                 v_td.resolve();
             }else{
                 var t_condition = [{
-                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
+                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$_id'}}
                 }];
                 t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
                 self.queryFromDB("barchart", t_condition,
                     function(v_d){
+                        if(v_name == "bandwidth")
+                        console.log(v_d.binCount);
                         var t_barchart = new BarchartModel({
                             "attrName": v_name,
                             "numOfBins": v_d.binNumber,
@@ -387,7 +389,7 @@
                 for(var i in filters){
                     var t_range = filters[i].range,
                     t_name = filters[i].name;
-                    if(t_attrs[t_name].type == "category"){
+                    if(t_attrs[t_name] && t_attrs[t_name].type == "category"){
                         t_condition[t_name] = {
                             '$in': t_range,
                         }

@@ -16,5 +16,9 @@ db.SignalDB2.find( { time : { $exists : true } } ).forEach( function (d) {
 	}
 	var t = new Date((d.time.replace(" ","T"))+"Z").getTime();
   	d.timeDate = NumberLong(t);
+  	var t_id = d["﻿id"];
+  	if(t_id){
+  		d["id"] = t_id;
+  	}
   	db.SignalDB2.save(d); 
 });

@@ -30,6 +30,12 @@
       <text class = "scopeRangeText" id = "scopeRangeText">error</text>
   </div>
   <div class = "title">
+  <text class = "controlTitle scopedbmRangeText">能量(dBm)</text>
+  </div>
+  <div class = "statCount">
+      <text class = "scopedbmRangeText" id = "scopedbmRangeText">error</text>
+  </div>
+  <div class = "title">
   <text class = "controlTitle carriernoiseRangeText">载噪比(dB)</text>
   </div>
   <div class = "statCount">
@@ -79,5 +85,5 @@
           <span class="button" data-value="carriernoise" data-tooltip="Carriernoise">载噪比</span>
     </div>
 </div>-->
-<div id = 'sizeLeg-view' style="top:13%">
+<div id = 'sizeLeg-view'>
 </div>

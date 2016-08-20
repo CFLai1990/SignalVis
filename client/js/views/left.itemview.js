@@ -570,7 +570,7 @@ define([
                             brushyRange.push(self.y1);
 
                       if(brush1.empty()) {
-                        Variables.setFilterRange("timeDate", null);
+                        Variables.setFilterRange("timeDate", null, true);
                       }
 
                       else {
@@ -578,7 +578,7 @@ define([
                       }
 
                       if(brush2.empty()) {
-                        Variables.setFilterRange("freq", null);
+                        Variables.setFilterRange("freq", null, true);
                       }
 
                       else {
@@ -598,8 +598,8 @@ define([
                 }
 
                 function zoomout(){
-                    Variables.setFilterRange("freq", null);
-                    Variables.setFilterRange("timeDate", null);
+                    Variables.setFilterRange("freq", null, true);
+                    Variables.setFilterRange("timeDate", null, true);
                     Variables.set("zoominFirsttimeFilterRange",null);
                     Variables.set("zoominMidfreFilterRange",null);
                     Variables.set("mode","zoomout");
