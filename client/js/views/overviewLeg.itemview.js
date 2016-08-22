@@ -34,10 +34,11 @@ define([
         onShow: function()
         {
             var self = this;
-            self.margin = {top: 0, right: 20, bottom: 15, left: 15},
+            var t_width = self.$el.width(), t_height = self.$el.height();
+            self.margin = {top: t_height * 0.2, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.24};
 
-            self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
-            self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
+            self.chartWidth = t_width - self.margin.left - self.margin.right;
+            self.chartHeight = t_height - self.margin.top - self.margin.bottom;
             
 			var aggCount = Datacenter.get("aggCount");
             var maxCount = d3.max(d3.max(aggCount));
