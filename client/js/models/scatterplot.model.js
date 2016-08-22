@@ -83,8 +83,7 @@ define([
 
             self.updateX(options.xModel);
             self.updateY(options.yModel);
-
-
+            self.listenTo(Datacenter, "clearAll", self.clearAll);
         },
 
         updateX:function() {
@@ -124,5 +123,20 @@ define([
             self.set("yName",yModel.get('attrName'));
         },
 
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "xModel":null,
+                "yModel":null,
+                "xmin":null,
+                "xmax":null,
+                "xName":null,
+                "ymin":null,
+                "ymax":null,
+                "yName":null,
+                "filterSignals":null,
+                "redraw":false,
+            })
+        },
     });
 });

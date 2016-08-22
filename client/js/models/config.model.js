@@ -131,5 +131,23 @@ define([
                 return self.get("data")[t_data];
             }
         },
+
+        changeData: function(v_data){
+            var self = this;
+            var t_data = self.get("currentData");
+            if(t_data != v_data){
+                if(!self.get("data")[v_data]){
+                    console.log("No such data!");
+                    return;
+                }
+                self.set("currentData", v_data);
+                self.trigger("Config:changeData");
+            }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.set("dictionary", null);
+        },
     }))();
 });

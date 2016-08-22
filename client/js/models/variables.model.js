@@ -18,23 +18,11 @@ define([
             //
             "mode":"zoomout", // zoomout or zoomin
             "filterRanges": {},
-            "bandwidthFilterRange":null, // null is not filter
-            "scopeFilterRange":null,
-            "carriernoiseFilterRange":null,
-            "firsttimeFilterRange":null, //
-            "midfreFilterRange":null,
 
             "zoominFirsttimeFilterRange":null,
             "zoominMidfreFilterRange":null,
             "detailSignals":null, //secondary zoom in signal
             'filterSignals':null, //
-
-            //filter result
-            "bandwithFilterArr":null, // null is not filter
-            "timeFilterArr":null, //
-            "midfreFilterArr":null,
-            "scopeFilterArr":null,
-            "carriernoiseFilterArr":null,
 
             "dimensions": {},
         },
@@ -78,6 +66,21 @@ define([
             if(v_trigger){
                 self.trigger("subspaceChange", self.dimensions);
             }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "loading": true,
+                "finishInit" : false,
+                "mode":"zoomout",
+                "filterRanges": {},
+                "zoominFirsttimeFilterRange":null,
+                "zoominMidfreFilterRange":null,
+                "detailSignals":null,
+                'filterSignals':null,
+                "dimensions": {},
+            });
         },
 
     }))();

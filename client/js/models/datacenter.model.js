@@ -38,35 +38,21 @@
                 "maxTime":null,
                 "minMidfre":null,
                 "maxMidfre":null,
-                //
-                "bandwidthDictArr":null,
-                "scopeDictArr":null,
-                "carriernoiseDictArr":null,
-                'firsttimeDictArr':null,
-                "midfreDictArr":null,
+
                 //select detail signals
                 "detailSignals":null,
                 //bar chart model
-                "bandwidthBarChart":null,
-                "scopeBarChart":null,
-                "carriernoiseBarChart":null,
                 "barcharts": {},
                 "barchartCollection": null,
                 //scatterplot
                 "scatterplot":null,
                 "highdimension":null,
-
-                //filter result
-                "bandwithFilterArr":null,
-                "scopeFilterArr":null,
-                "carriernoiseFilterArr":null,
-                "firsttimeFilterArr":null,
-                "firsttimeFilterArr":null,
             };
         },
 
         initialize: function(){
             var self = this;
+            self.set("barchartCollection", new barchartCollection());
             var queryFunc = function(){
                     var t_df = $.Deferred();
                     self.updateFilterArrWithoutInx(t_df);
@@ -74,20 +60,26 @@
                         self.updateDetailSignals();
                     });
             };
+            self.listenTo(Config, "Config:changeData", self.changeData);
             self.listenTo(Variables,"change:bandwidthFilterRange", queryFunc);
             self.listenTo(Variables,"change:scopeFilterRange", queryFunc);
             self.listenTo(Variables,"change:carriernoiseFilterRange", queryFunc);
             self.listenTo(Variables, "changeFilterRange", queryFunc);
-            // self.listenTo(Variables,"change:mode", queryFunc);
-            // self.listenTo(Variables,"change:firsttimeFilterRange", queryFunc);
-            // self.listenTo(Variables,"change:midfreFilterRange", queryFunc);
             self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
                     self.updateDetailSignals();
             });
             self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
                     self.updateDetailSignals();
             });
-            self.set("barchartCollection", new barchartCollection());
+        },
+
+        changeData: function(){
+            var self = this;
+            Variables.clearAll();
+            Config.clearAll();
+            self.trigger("clearAll");
+            self.clearAll();
+            self.start();
         },
 
         start: function(options){
@@ -471,5 +463,21 @@
             });
         },
 
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "signals": null,
+                "aggCount": null,
+                "minTime":null,
+                "maxTime":null,
+                "minMidfre":null,
+                "maxMidfre":null,
+                "detailSignals":null,
+                "barcharts": {},
+                "scatterplot":null,
+                "highdimension":null,
+            });
+            self.get("barchartCollection").reset();
+        },
     }))();
  });

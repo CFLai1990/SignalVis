@@ -37,7 +37,7 @@ define([
                 self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                         self.onChangeFilterSignals(filterSignals);
                 });
-                self.listenTo(Variables, "changeFilterRange",  function(model,midfreFilterRange){
+                self.listenTo(Variables, "changeFilterRange",  function(model){
                         self.updateMidTexts();
                 });
 
