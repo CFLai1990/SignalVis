@@ -434,7 +434,7 @@
             console.timeEnd(2);
         },
 
-        querySpectrum: function(v_frame){
+        querySpectrum: function(v_frame, v_callback){
             var self = this, v_df = $.Deferred();
             var t_collection = Config.getData("spectrum");
             console.time(3);
@@ -443,6 +443,7 @@
                     return: {'scope': 1, 'frequency': 1, '_id': 0},
                 }, function(v_d){
                     console.timeEnd(3);
+                    v_callback(v_d);
                     //handle spectrum data
             }, v_df, {
                 collection: t_collection,
