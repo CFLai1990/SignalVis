@@ -192,7 +192,6 @@
             self.set("minMidfre",t_freq[0]);
             self.set("maxMidfre",t_freq[1]);
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
-            console.log(t_keys);
             for(var i in t_keys){
                 var t_i = t_keys[i];
                 if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
@@ -249,8 +248,6 @@
                 t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
                 self.queryFromDB("barchart", t_condition,
                     function(v_d){
-                        if(v_name == "bandwidth")
-                        console.log(v_d.binCount);
                         var t_barchart = new BarchartModel({
                             "attrName": v_name,
                             "numOfBins": v_d.binNumber,
@@ -326,7 +323,6 @@
                 "carriernoise":carriernoiseRange,
             });
             this.set("detailSignals",detailSignals);
-            console.log(detailSignals);
         },
 
         addDetailSignal:function(midfreInx,timeInx) {
@@ -436,6 +432,21 @@
                 Variables.set("detailSignals",null);
             }
             console.timeEnd(2);
+        },
+
+        querySpectrum: function(v_frame){
+            var self = this, v_df = $.Deferred();
+            var t_collection = Config.getData("spectrum");
+            console.time(3);
+            self.queryFromDB("query", {
+                condition: {"frameNum": v_frame},
+                return: {'scope': 1, 'frequency': 1, '_id': 0},
+                }, function(v_d){
+                console.timeEnd(3);
+                //handle spectrum data
+            }, v_df, {
+                collection: t_collection,
+            });
         },
 
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){

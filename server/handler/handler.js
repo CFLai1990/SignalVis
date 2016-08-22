@@ -87,7 +87,11 @@ function initialize(root, db, views, logger){
 		};
 		switch(t_conditions.command){
 			case "query":
-				db.query(t_conditions.table, t_conditions.condition, responseFunc);
+				if(t_conditions.extra){
+					db.query(t_conditions.table, t_conditions.condition, responseFunc, t_conditions.extra);
+				}else{
+					db.query(t_conditions.table, t_conditions.condition, responseFunc);
+				}
 			break;
 			case "aggregate":
 				db.aggregate(t_conditions.table, t_conditions.condition, responseFunc);
