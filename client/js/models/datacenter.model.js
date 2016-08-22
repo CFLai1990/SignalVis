@@ -439,11 +439,11 @@
             var t_collection = Config.getData("spectrum");
             console.time(3);
             self.queryFromDB("query", {
-                condition: {"frameNum": v_frame},
-                return: {'scope': 1, 'frequency': 1, '_id': 0},
+                    condition: {"frameNum": v_frame},
+                    return: {'scope': 1, 'frequency': 1, '_id': 0},
                 }, function(v_d){
-                console.timeEnd(3);
-                //handle spectrum data
+                    console.timeEnd(3);
+                    //handle spectrum data
             }, v_df, {
                 collection: t_collection,
             });
