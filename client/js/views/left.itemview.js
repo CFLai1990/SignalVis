@@ -22,12 +22,83 @@ define([
         {
              var self = this;
              options = options || {};
+             self.listenTo(self, "test:everything_done", self.specDiagram);
              self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                   console.log(Variables.get("mode"));
                   if(Variables.get("mode") == "zoomin") {
                         self.transition_data(filterSignals);
                   }
-          });
+          	 });
+        },
+        
+        specDiagram: function(){
+            var self = this;
+            var specResult = Variables.get("specResult");
+            d3.selectAll('.line').remove();
+            
+            var scope_scale = d3.scale.linear()
+		      .range([-150,15])
+		      .domain([0,3500]);
+            
+            specResult.forEach(function(d){
+           	   d.scope = scope_scale(d.scope);
+            });
+            
+            var line = d3.svg.line()
+              .x(function(d) { return self.x_line(d.frequency); })
+              .y(function(d) { return self.y_line(d.scope); });
+            
+            self.svg_line.append("path")
+		      .datum(specResult)
+		      .attr("class", "line")
+		      .attr("clip-path", "url(#clip)")
+		      .attr("d", line)
+		      .style('fill','none')
+		      .style('stroke','#00AEEF')
+		      .style('stroke-width',.5)
+		      .style("cursor","pointer")
+		      .on("mouseover",function(d){
+		      	var x0 = self.x_line.invert(d3.mouse(this)[0]),
+		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
+		      	line_showTooltip(x0,y0);
+		      })
+		      .on("mouseout",function(){
+		      	line_hideTooltip();
+		      });
+		      
+        		function line_showTooltip(x,y){
+               var tooltip_scatter = self.svg_line.append("g")
+                  .attr("class", "tooltip_scatter");
+			   
+               tooltip_scatter.append("text")
+                  .attr("font-size", '13px')
+                  .attr("x", self.Width_line/3)
+                  .attr("y", 10)
+                  .attr("fill","black")
+                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm");
+
+               tooltip_scatter.append('line')
+                  .attr('x1',self.x_line(x))
+                  .attr('x2',self.x_line(x))
+                  .attr('y1',self.y_line(y))
+                  .attr('y2',self.Height_line)
+                  .style('fill','none')
+                  .style('stroke','grey')
+                  .style("stroke-dasharray", ("3, 3"));
+
+               tooltip_scatter.append('line')
+                  .attr('x1',self.x_line(x))
+                  .attr('x2',0)
+                  .attr('y1',self.y_line(y))
+                  .attr('y2',self.y_line(y))
+                  .style('fill','none')
+                  .style('stroke','grey')
+                  .style("stroke-dasharray", ("3, 3"));
+            }
+
+         	function line_hideTooltip(){
+              d3.selectAll(".tooltip_scatter").remove();
+            }
         },
 
         transition_data:function(filterSignals)
@@ -298,30 +369,27 @@ define([
                 self.Width_line = self.$el.width() - self.margin_line.left - self.margin_line.right;
                 self.Height_line = t_height * 0.27;
 
-                var x_line = d3.scale.linear()
+                self.x_line = d3.scale.linear()
                     .range([0, self.Width_line]);
 
-                var y_line = d3.scale.linear()
+                self.y_line = d3.scale.linear()
                     .range([self.Height_line, 0]);
 
                 var xAxis_line = d3.svg.axis()
-                    .scale(x_line)
+                    .scale(self.x_line)
                     .orient("bottom");
 
                 var yAxis_line = d3.svg.axis()
-                    .scale(y_line)
-                    .orient("left");
-
-                var line = d3.svg.line()
-                    .x(function(d) { return x_line(d.midfre); })
-                    .y(function(d) { return y_line(d.scopedbm); });
+                    .scale(self.y_line)
+                    .orient("left");               
 
                 self.svg_line = self.d3el.append("g")
                     .attr("transform", "translate(" + self.margin_line.left + "," + self.margin_line.top + ")")
                     .attr("class","svg_line");
-
-                x_line.domain(d3.extent(detailSignals, function(d) { return d.midfre; }));
-                y_line.domain(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
+                    
+				console.log(d3.extent(detailSignals, function(d) { return d.midfre; }));
+                self.x_line.domain(d3.extent(detailSignals, function(d) { return d.midfre; }));
+                self.y_line.domain([-150,15]);
      
                  self.svg_line.append("g")
                       .attr("class", "x axis")
@@ -342,15 +410,20 @@ define([
                       .attr("dy", ".7em")
                       .style("text-anchor", "start")
                       .text("功率(dBm)");
+                      
+                  self.svg_line.append("defs").append("clipPath")
+				    	  .attr("id", "clip")
+				    .append("rect")
+				      .attr("width", self.Width_line)
+				      .attr("height", self.Height_line);
+
 
             function drawlinechart(){
                 var x_time = (self.xAxisScale.invert(d3.mouse(this)[0])).toTimeString().substr(0,8);
                 var current_time = self.xAxisScale.invert(d3.mouse(this)[0]).getTime();
                 //frame number
-                var tem = parseInt((parseInt((current_time - start_time)/1000))/(231/3008));
-
-                console.log(tem);
-                d3.selectAll('.line').remove();
+                var frame_num = parseInt((parseInt((current_time - start_time)/1000))/(231/3008));
+                                
 				d3.select('.line_title').remove();
 
                 self.svg_line.append('g')
@@ -360,61 +433,10 @@ define([
                   .attr("class","line_title")
                   .text("时间：" + x_time);
                   
-                var filterData = detailSignals.filter(function(d){
-                		if(new Date(d.firsttime).toTimeString().substr(0,8) == x_time)
-                			return true;
-                		else
-                			return false;
-                });
-                
-                filterData.sort(function(a,b){
-                      return b.midfre - a.midfre;
-                  });
-                
-                
-                self.svg_line.append("path")
-			      .datum(filterData)
-			      .attr("class", "line")
-			      .attr("d", line)
-			      .style('fill','none')
-			      .style('stroke','steelblue')
-			      .style('stroke-width',1.5);
-
-            		function line_showTooltip(node){
-
-                   var tooltip_scatter = self.svg_line.append("g")
-                      .attr("class", "tooltip_scatter");
-
-                   tooltip_scatter.append("text")
-                      .attr("font-size", '13px')
-                      .attr("x", self.chartWidth/3)
-                      .attr("y", 10)
-                      .attr("fill","black")
-                      .text("中心频率："+node.midfre.toFixed(3) + "MHz 功率：" + node.scope + "dBm");
-
-//                 tooltip_scatter.append('line')
-//                    .attr('x1',self.xAxisScale(new Date(node.firsttime)))
-//                    .attr('x2',self.xAxisScale(new Date(node.firsttime)))
-//                    .attr('y1',self.yAxisScale(node.midfre))
-//                    .attr('y2',self.chartHeight)
-//                    .style('fill','none')
-//                    .style('stroke','grey')
-//                    .style("stroke-dasharray", ("3, 3"));
-//
-//                 tooltip_scatter.append('line')
-//                    .attr('x1',self.xAxisScale(new Date(node.firsttime)))
-//                    .attr('x2',0)
-//                    .attr('y1',self.yAxisScale(node.midfre))
-//                    .attr('y2',self.yAxisScale(node.midfre))
-//                    .style('fill','none')
-//                    .style('stroke','grey')
-//                    .style("stroke-dasharray", ("3, 3"));
-                }
-
-             	function line_hideTooltip(node,thisNode){
-                  d3.selectAll(".tooltip_scatter").remove();
-                }
-
+                Datacenter.querySpectrum(frame_num, function(v_d){
+	                Variables.set("specResult", v_d);
+	                self.trigger("test:everything_done");
+	            })
             }
 
             function mousemove() {

@@ -35,6 +35,7 @@ define([
             "midfreFilterArr":null,
             "scopeFilterArr":null,
             "carriernoiseFilterArr":null,
+            "specResult":null,
 
             "dimensions": {},
         },
