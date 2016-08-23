@@ -67,9 +67,8 @@ define([
             });
             self.listenTo(self,"change:filterSignals", function(model, filterSignals){
                 self.set("redraw",!self.get("redraw"));
-
-
             });
+            self.listenTo(Datacenter, "clearAll", self.clearAll);
 
             self.updateX(options.xModel);
             self.updateY(options.yModel);
@@ -112,6 +111,23 @@ define([
             }
 
             self.set("yName",yModel.get('attrName'));
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "xfilterRangeName": null,
+                "yfilterRangeName": null,
+                "isZoomin":false,
+                "xmin":null,
+                "xmax":null,
+                "xName":null,
+                "ymin":null,
+                "ymax":null,
+                "yName":null,
+                "filterSignals":null,
+                "redraw":false,
+            })
         },
 
     });

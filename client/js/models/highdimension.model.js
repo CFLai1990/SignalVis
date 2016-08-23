@@ -17,13 +17,6 @@ define([
 
     return Backbone.Model.extend({
         defaults: {
-            //active dimension
-            "bandwidthActive": false,
-            "midfrequencyActive": false,
-            "firsttimeActive": false,
-            "scopeActive": false,
-            "carriernoiseActive": false,
-
             // for plots
             "xmin":null,
             "xmax":null,
@@ -53,6 +46,7 @@ define([
                 }
                 self.set("redraw",!self.get("redraw"));
             });
+            self.listenTo(Datacenter, "clearAll", self.clearAll);
         },
 
         redraw: function(){
@@ -136,7 +130,20 @@ define([
             return count;
         },
 
-
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "xmin":null,
+                "xmax":null,
+                "ymin":null,
+                "ymax":null,
+                "transformMatrix":null,
+                "filterSignals":null,
+                "filterSignalsArr":null,
+                "reductionSignals":null,
+                "redraw":false,
+            })
+        },
 
     });
 });

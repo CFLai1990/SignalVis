@@ -43,6 +43,7 @@ define([
             self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                 self.calcFilterBins(filterSignals);
             });
+            self.listenTo(Datacenter, "clearAll", self.clearAll);
         },
 
         // calcZoominBins: function() {
@@ -142,6 +143,11 @@ define([
                 filterBins = null;
             }
             self.set("filterBins",filterBins);
-        }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.destroy();
+        },
     });
 });
