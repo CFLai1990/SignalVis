@@ -68,7 +68,7 @@ define([
             self.listenTo(self,"change:filterSignals", function(model, filterSignals){
                 self.set("redraw",!self.get("redraw"));
             });
-            self.listenTo(Datacenter, "clearAll", self.clearAll);
+            self.listenTo(Variables, "clearAll", self.clearAll);
 
             self.updateX(options.xModel);
             self.updateY(options.yModel);

@@ -83,7 +83,7 @@ define([
 
             self.updateX(options.xModel);
             self.updateY(options.yModel);
-            self.listenTo(Datacenter, "clearAll", self.clearAll);
+            self.listenTo(Variables, "clearAll", self.clearAll);
         },
 
         updateX:function() {

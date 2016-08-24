@@ -93,6 +93,9 @@ function initialize(root, db, views, logger){
 					db.query(t_conditions.table, t_conditions.condition, responseFunc);
 				}
 			break;
+			case "queryBC":
+				db.query(t_conditions.table, t_conditions.condition, views.queryBC(responseFunc, t_conditions.extra));
+			break;
 			case "aggregate":
 				db.aggregate(t_conditions.table, t_conditions.condition, responseFunc);
 			break;

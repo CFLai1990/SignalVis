@@ -11,10 +11,10 @@
 @title-background:rgba(170,170,170,0.05);
 @title-text-color:#aaaaaa;
 /* Div Size */
-@left-width : 60%;
-@mid-width: 75px;
-@right-width:calc(~"40% - "@mid-width);// 1- leftwidth
-@right-left-margin:calc(~"60% + "@mid-width);
+@left-width : 55%;
+@mid-width: 10%;
+@right-width:calc(~"100% - @{left-width} - @{mid-width}");// 1- leftwidth
+@right-left-margin:calc(~"@{left-width} + @{mid-width}");
 @app-height:calc(~'100% - 30px');
 // @app-height:100%;
 //right

@@ -86,8 +86,48 @@ function pixelmap(v_callback, v_parameters){
     };
 }
 
+function queryBC(v_callback, v_parameters){
+    return function(v_data){
+        var t_keys = _.keys(v_data[0]), t_barcharts = {}, t_ranges = {}, t_init = false;
+        for(var i in t_keys){
+            var tk = t_keys[i];
+            if(tk == "id"){
+                continue;
+            }
+            t_ranges[tk] = null;
+            if(v_parameters[tk]){
+                var t_num = v_parameters[tk].count, t_range = v_parameters[tk].range;
+                if(!t_range){
+                    t_range = [_.min(v_data, tk)[tk], _.max(v_data, tk)[tk]];
+                    t_ranges[tk] = t_range;
+                    t_init = true;
+                }
+                var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = _.countBy(v_data, function(v_d){
+                    var t_ind = Math.floor((v_d[tk] - t_range[0]) / t_binR);
+                    if(t_ind == t_num){
+                        t_ind --;
+                    }
+                    return t_ind;
+                });
+                t_barcharts[tk] = t_bins;
+            }else{
+                t_barcharts[tk] = _.countBy(v_data, tk);
+            }
+        }
+        var t_ids = _.map(v_data, "id");
+        var t_result = {
+            ids: t_init?null:t_ids,
+            barcharts: t_barcharts,
+            count: v_data.length,
+            range: t_ranges,
+        };
+        v_callback(t_result);
+    };
+}
+
 module.exports = {
 	initialize: initialize,
 	barchart: barchart,
     pixelmap: pixelmap,
+    queryBC: queryBC,
 };

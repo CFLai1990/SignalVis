@@ -46,7 +46,7 @@ define([
                 }
                 self.set("redraw",!self.get("redraw"));
             });
-            self.listenTo(Datacenter, "clearAll", self.clearAll);
+            self.listenTo(Variables, "clearAll", self.clearAll);
         },
 
         redraw: function(){

@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "signaldata1",
+            "currentData": "signaldata2",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},
@@ -63,6 +63,7 @@ define([
             },
             "barchart": {
                 "bins": 40,
+                "list": null,
             },
             "chineseAttrNames": {
                 "midfre": "中心频率",
