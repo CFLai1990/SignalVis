@@ -62,9 +62,9 @@ define([
 
                     var ymax = _.max(filterBins);
                     if(self.model.get("scale") == 'linear') {
-                        self.yAxisScale.domain([0,ymax]);
+                        self.yAxisScale.domain([1,ymax]);
 
-                        self.yScale.domain([0,ymax]);
+                        self.yScale.domain([1,ymax]);
                         if(ymax > 10000){
                             self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                                 .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
@@ -89,7 +89,17 @@ define([
                                                 .tickValues(tickValues)
                                                  .tickFormat(function (d) {
                                                         var result = Math.log10(d);
-                                                         return "10" + formatPower(result);
+                                                        switch(result){
+                                                            case 0:
+                                                                return 1;
+                                                            break;
+                                                            case 1:
+                                                                return 10;
+                                                            break;
+                                                            default:
+                                                                return "10" + formatPower(result);
+                                                            break;
+                                                        }
                                                 });
                     }
                     else {
@@ -123,20 +133,29 @@ define([
                 else if(self.model.get("scale") == 'power') {
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                     formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
-                    self.yAxisScale.domain([100,t_yRange[1]]);
+                    self.yAxisScale.domain([1,t_yRange[1]]);
 
                     self.yScale.domain([1,t_yRange[1]]);
 
                     var tickValues = [];
-                    for(var j=2;Math.pow(10,j)<=t_yRange[1];j++) {
+                    for(var j=0;Math.pow(10,j)<=t_yRange[1];j++) {
                         tickValues.push(Math.pow(10,j));
                     }
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                             .tickValues(tickValues)
                                              .tickFormat(function (d) {
                                                     var result = Math.log10(d);
-                                                     return "10" + formatPower(result);
-
+                                                    switch(result){
+                                                        case 0:
+                                                            return 1;
+                                                        break;
+                                                        case 1:
+                                                            return 10;
+                                                        break;
+                                                        default:
+                                                            return "10" + formatPower(result);
+                                                        break;
+                                                    }
                                             });
 
                 }
@@ -224,24 +243,33 @@ define([
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                     formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
                     self.yAxisScale = d3.scale.log().base(10).clamp(true)
-                                            .domain([100,ymax])
+                                            .domain([1,ymax])
                                             .range([self.chartHeight ,0]);
 
                     self.yScale = d3.scale.log().base(10).clamp(true)
-                        .domain([100,ymax])
+                        .domain([1,ymax])
                         .range([0,self.chartHeight]);
 
 
                     var tickValues = [];
-                    for(var j=2;Math.pow(10,j)<=ymax;j++) {
+                    for(var j=0;Math.pow(10,j)<=ymax;j++) {
                         tickValues.push(Math.pow(10,j));
                     }
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                             .tickValues(tickValues)
                                              .tickFormat(function (d) {
                                                     var result = Math.log10(d);
-                                                     return "10" + formatPower(result);
-
+                                                    switch(result){
+                                                        case 0:
+                                                            return 1;
+                                                        break;
+                                                        case 1:
+                                                            return 10;
+                                                        break;
+                                                        default:
+                                                            return "10" + formatPower(result);
+                                                        break;
+                                                    }
                                             });
                 break;
                 default:

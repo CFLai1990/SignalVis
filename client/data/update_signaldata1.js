@@ -22,3 +22,18 @@ db.SignalDB1.find( { time : { $exists : true } } ).forEach( function (d) {
   	}
   	db.SignalDB1.save(d); 
 });
+db.SignalDB1.createIndex({
+	"freq": 1, 
+	"baud": 1, 
+	"location": 1, 
+	"demod": 1, 
+	"demodrate": 1,
+	"inforate": 1,
+	"isDAOPU": 1,
+	"isTDMA": 1,
+	"codeType": 1,
+	"frameLen": 1,
+	"isdiff": 1,
+	"transport": 1,
+	"poly": 1,
+});

@@ -1,4 +1,4 @@
-var _ = require("underscore");
+var _ = require("underscore"), numeric = require("numeric");
 
 function initialize(v_db, v_logger){
 	logger = v_logger;
@@ -42,10 +42,14 @@ function pixelmap(v_callback, v_parameters){
     };
     return function(v_data){
         var t_key = v_parameters.key, t_size = v_parameters.size;
+        var t_keySize = v_data.length;
         var t_data = t_sort(v_data, t_key), t_subData = _.map(t_data, "indexs");
         var t_min = t_data[0][t_key], t_max = t_data[t_data.length - 1][t_key];
         var t_subMax = _.max(_.max(t_subData, function(t){return _.max(t);}));
         var t_subMin = _.min(_.min(t_subData, function(t){return _.min(t);}));
+        if(t_keySize < t_size[0]){
+            t_size[0] = t_keySize;
+        }
         var t_binR = (t_max - t_min) / t_size[0], t_subBinR = (t_subMax - t_subMin) / t_size[1];
         var t_aggCount = [];
         for(var i = 0; i < t_size[0]; i++){
@@ -69,10 +73,11 @@ function pixelmap(v_callback, v_parameters){
                 t_aggCount[tt_i][tt_j]++
             }
         }
+        t_aggCount = numeric.transpose(t_aggCount);
         var t_result = {
             "attr": v_parameters.attr,
             "subattr": v_parameters.subattr,
-            "size": t_size,
+            "size": [t_size[1], t_size[0]],
             "aggCount": t_aggCount,
             "range": [t_min, t_max],
             "subRange": [t_subMin, t_subMax],

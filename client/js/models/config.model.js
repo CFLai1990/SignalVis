@@ -35,6 +35,9 @@ define([
                 "demod":{name: "demod", type: "category", norm: true},
                 "demodrate":{name: null, type: "category", norm: true},
                 "codeType":{name: "codetype", type: "category", norm: true},
+                "transport":{name: "transport", type: "category", norm: true},
+                "poly":{name: "poly", type: "category", norm: true},
+                "frameLen":{name: "frameLen", type: "category", norm: true},
             },
             "data": {
                 "950MHz": {
@@ -81,6 +84,9 @@ define([
                 "demod": "解调模式",
                 "demodrate": "解调速率",
                 "inforate": "inforate",
+                "transport": "传输协议",
+                "poly": "poly",
+                "frameLen": "帧长",
             },
             "attrs": {
                 "bandwidth": {"attr": "baud", "scale": "power", type: "float", text: "bandwidthRangeText", hd: true},
@@ -104,13 +110,17 @@ define([
                 "daopu": {"attr": "isDAOPU","scale": "power", type: "category", text: null, hd: true},
                 "diff": {"attr": "isdiff","scale": "power", type: "category", text: null, hd: true},
                 "codetype": {"attr": "codeType","scale": "power", type: "category", text: null, hd: true},
+                "transport": {"attr": "transport","scale": "power", type: "category", text: null, hd: true},
+                "poly": {"attr": "poly","scale": "power", type: "category", text: null, hd: true},
+                "frameLen": {"attr": "frameLen","scale": "power", type: "category", text: null, hd: true},
             },
             "pixel": {
                 "attrs": [
-                    {"name": "midfre", "attr": "freq", "scale": "linear"},
                     {"name": "firsttime", "attr": "timeDate", "scale": "time"},
+                    {"name": "midfre", "attr": "freq", "scale": "linear"},
                 ],
-                "size": [120, 240],
+                "plansize": [240, 120],
+                "size": null,
             },
             "projection": {
                 "SampleRate": [1, 1, 1, 0.5, 0.3, 0.3, 0.3],

@@ -1,4 +1,4 @@
-db.SignalDB2.find( { time : { $exists : true } } ).forEach( function (d) {
+db.SignalDB0.find( { time : { $exists : true } } ).forEach( function (d) {
 	if(d.time.indexOf("/")>=0){
 		var t_p = d.time.split("/");
 		if(t_p[1].length == 1){
@@ -20,5 +20,12 @@ db.SignalDB2.find( { time : { $exists : true } } ).forEach( function (d) {
   	if(t_id){
   		d["id"] = t_id;
   	}
-  	db.SignalDB2.save(d); 
+  	db.SignalDB0.save(d);
+});
+db.SignalDB0.createIndex({
+	"freq": 1, 
+	"baud": 1, 
+	"snr": 1, 
+	"dbm": 1, 
+	"timeDate": 1,
 });

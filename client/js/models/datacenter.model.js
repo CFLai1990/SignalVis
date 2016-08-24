@@ -177,12 +177,6 @@
             var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
             var t_time = d3.extent(_.map(t_signals, "firsttime")),
             t_freq = d3.extent(_.map(t_signals, "midfre"));
-            self.set("timeRange", t_time);
-            self.set("minTime",t_time[0]);
-            self.set("maxTime",t_time[1]);
-            self.set("midfreRange", t_freq);
-            self.set("minMidfre",t_freq[0]);
-            self.set("maxMidfre",t_freq[1]);
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
             for(var i in t_keys){
                 var t_i = t_keys[i];
@@ -200,7 +194,7 @@
             var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
             self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
-                t_attrs[1].name, t_attrs[1].attr, t_pxl.size, tt_tds);
+                t_attrs[1].name, t_attrs[1].attr, t_pxl.plansize, tt_tds);
             $.whenWithProgress(t_tds, function(){})
             .then(function(){def.resolve();});
         },
@@ -268,6 +262,21 @@
             self.queryFromDB("pixelmap", t_condition,
                 function(v_d){
                     self.set("aggCount", v_d.aggCount);
+                    var t_tr = v_d.range, t_fr = v_d.subRange, t_shift = 8 * 3600 * 1000;
+                    if(v_name == 'firsttime'){
+                        t_tr[0] -= t_shift;
+                        t_tr[1] -= t_shift;
+                    }else{
+                        t_fr[0] -= t_shift;
+                        t_fr[1] -= t_shift;
+                    }
+                    self.set("timeRange", t_tr);
+                    self.set("minTime",t_tr[0]);
+                    self.set("maxTime",t_tr[1]);
+                    self.set("midfreRange", t_fr);
+                    self.set("minMidfre",t_fr[0]);
+                    self.set("maxMidfre",t_fr[1]);
+                    Config.set("size", v_d.size);
                 }, v_td, {
                     key: v_attr,
                     attr: v_name,
@@ -357,7 +366,7 @@
                 if(t_range){
                     var filter = {
                         name: i,
-                        range: filterRanges[i],
+                        range: filterRanges[i].slice(0),
                     };
                     if(i == "timeDate"){
                         var t_shift = 8 * 3600 * 1000;

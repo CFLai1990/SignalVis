@@ -81,7 +81,9 @@ define([
                 Config.changeData(t_id);
                 $(".dataLoader").removeClass("active");
                 $(this).addClass("active");
-            })
+            });
+            var t_d = Config.get("currentData");
+            $(".dataLoader#"+t_d).addClass("active");
         },
 
     });
