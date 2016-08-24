@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "signal",
+            "currentData": "signaldata1",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},
@@ -123,7 +123,8 @@ define([
                 "size": null,
             },
             "projection": {
-                "SampleRate": [1, 1, 1, 0.5, 0.3, 0.3, 0.3],
+                "SampleRate": [1, 1, 1, 0.5, 0.3, 0.2, 0.1, 0.1, 0.1],
+                "opacity": [0.9, 0.9, 0.6, 0.3, 0.2, 0.2, 0.2, 0.1, 0.1],
             },
             "dictionary": null,
         },

@@ -47,9 +47,12 @@ define([
             self.d3el.selectAll('.nodes').remove();
             var filterSignals = Variables.get("filterSignals");
             var reductionSignals = self.model.get('reductionSignals');
-            var t_ratio = Config.get("projection")["SampleRate"], t_samples;
+            var t_ratio = Config.get("projection")["SampleRate"],
+                t_opcs = Config.get("projection")["opacity"],
+                t_samples;
             if(filterSignals && filterSignals.length > 5 && reductionSignals) {
-                var t_size = Math.round(Math.log10(reductionSignals.length));
+                var t_size = Math.round(Math.log10(reductionSignals.length)), t_opc;
+                t_opc = t_opcs[t_size];
                 t_samples = _.sample(reductionSignals, Math.round(reductionSignals.length * t_ratio[t_size]));
 
                 var nodeGroup = self.mainRegin.append("g").attr("class","nodes");
@@ -65,7 +68,8 @@ define([
                                     .attr("cy", function(d){return self.yAxisScale(d[1]);})
                                     .attr("r", function(){
                                         return "2px";
-                                    });
+                                    })
+                                    .attr("opacity", t_opc);
             }
         }
 
