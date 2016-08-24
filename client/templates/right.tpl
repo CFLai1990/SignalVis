@@ -45,6 +45,9 @@
           <span class="button" id = "hddemod" data-value="demod" data-tooltip="Demod">解调模式</span>
           <span class="button" id = "hddemodrate" data-value="demodrate" data-tooltip="Demod Rate">解调速率</span>
           <span class="button" id = "hdinforate" data-value="inforate" data-tooltip="inforate">inforate</span>
+          <span class="button" id = "hdtransport" data-value="transport" data-tooltip="transport">传输协议</span>
+          <span class="button" id = "hdpoly" data-value="poly" data-tooltip="poly">poly</span>
+          <span class="button" id = "hdframeLen" data-value="frameLen" data-tooltip="frameLen">帧长</span>
     </div>
   </div>
 

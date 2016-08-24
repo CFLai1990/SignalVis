@@ -44,12 +44,20 @@ define([
             var self = this;
             if(self.get("category")){
                 var t_range = self.get("xRange"), t_ind = t_range.indexOf("NaN");
+                var t_bins = self.get("totalBins");
                 if(t_ind >=0){
                     t_range.splice(t_ind,1);
                     t_range.splice(0,0,"NaN");
+                    var t_bin = t_bins.splice(t_ind,1);
+                    t_bins.splice(0,0,t_bin[0]);
                 }
             }
             self.set("xRange", t_range);
+            self.set("totalBins", t_bins);
+            var t_dict = self.get("dictionary");
+            for(var i in t_range){
+                t_dict.get(t_range[i]).order = i;
+            }
         },
 
         calcFilterBins:function(filterSignals) {
@@ -72,8 +80,9 @@ define([
                     _.filter(filterSignals, function(t_d){
                         var tt_d = t_d[t_name];
                         for(var i in t_dict){
-                            if(tt_d == t_dict[i].value.num){
-                                filterBins[i] ++;
+                            var tt_dict = t_dict[i].value;
+                            if(tt_d == tt_dict.num){
+                                filterBins[tt_dict.order] ++;
                                 break;
                             }
                         }

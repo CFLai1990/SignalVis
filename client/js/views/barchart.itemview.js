@@ -15,7 +15,7 @@ define([
         template: false,
 
         attributes:{
-            'style' : 'width: 100%; height:100%;'
+            'style' : 'width: 100%; height:50%;'
         },
         events:{
             "click .barTitle": "onClickBarTitle"
@@ -124,7 +124,7 @@ define([
             }
             else if(this.model.get("mode") == "zoomout"){
                 self.d3el.select(".barTitle")
-                     .text(self.theTitle + " (全局)");
+                     .text(self.theTitle);
                 if(self.model.get("scale") == 'linear') {
                     self.yAxisScale.domain(t_yRange);
 
@@ -144,7 +144,6 @@ define([
                     for(var j=-1;Math.pow(10,j)<=t_yRange[1];j++) {
                         tickValues.push(Math.pow(10,j));
                     }
-                    console.log(tickValues);
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                             .tickValues(tickValues)
                                              .tickFormat(function (d) {
@@ -188,7 +187,7 @@ define([
         onShow: function()
         {
             var self = this;
-            self.margin = {top: 20, right: 20, bottom: 15, left: 30},
+            self.margin = {top: 20, right: 20, bottom: 30, left: 30},
 
             self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
             self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
@@ -200,7 +199,7 @@ define([
                         .attr("y", self.margin.top*0.75)
                         .style("text-anchor", "middle")
                         .attr("class","barTitle")
-                        .text(self.theTitle + " (全局)");
+                        .text(self.theTitle);
 //Scale
             self.binWidth = Math.floor(self.chartWidth / self.model.get("numOfBins"));
             var tt_scale, td_scale;
@@ -351,9 +350,20 @@ define([
                                                 if(tt_r[0] == tt_r[1]){
                                                     brushRange = null;
                                                 }else{
-                                                    tt_r = [];
-                                                    for(var i = t_inds[0]; i < t_inds[1]; i++){
-                                                        tt_r.push(t_d[i]);
+                                                    var t_start = tt_r[0], t_end = tt_r[1], t_sign = false;
+                                                    console.log(t_start, t_end);
+                                                    tt_r = [];                                            
+                                                    for(var i in t_d){
+                                                        var tt_dict = t_d[i];
+                                                        if(tt_dict == t_start){
+                                                            t_sign = true;
+                                                        }
+                                                        if(tt_dict == t_end){
+                                                            t_sign = false;
+                                                        }
+                                                        if(t_sign){
+                                                            tt_r.push(tt_dict);
+                                                        }
                                                     }
                                                     brushRange = [];
                                                     for(var i in tt_r){
@@ -373,10 +383,6 @@ define([
                                                             break;
                                                         }
                                                     }
-                                                    // var tt_br = brushRange.map(isNaN);
-                                                    // if(!d3.set(tt_br).has(true) && !t_null){
-                                                    //     brushRange = tt_br;
-                                                    // }
                                                     if(brushRange.length == 0){
                                                         brushRange = null;
                                                     }

@@ -65,6 +65,8 @@ define([
                 "bins": 40,
             },
             "chineseAttrNames": {
+                "midfre": "中心频率",
+                "firsttime": "时间",
                 "bandwidth": "带宽",
                 "scope": "能量",
                 "scopedbm": "能量",

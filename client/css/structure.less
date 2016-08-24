@@ -105,27 +105,6 @@ body{
         height:@all-plot-height;
         border:@border;
     }
-    #bandwidth-view{
-        position:relative;
-
-        width: 100%;
-        height:@plot-height;
-        border:@border;
-    }
-    #scope-view{
-        position:relative;
-
-        width: 100%;
-        height:@plot-height;
-        border:@border;
-    }
-    #carriernoise-view{
-        position:relative;
-
-        width: 100%;
-        height:@plot-height;
-        border:@border;
-    }
     #scatterplot-container{
         position:relative;
         width: 100%;
@@ -193,7 +172,7 @@ body{
     }
     #detailSignal {
         position:absolute;
-        top:calc(~"3 * @{plot-height}");
+        top: @all-plot-height;
         width:100%;
         height:@scatter-container-height;
         border:@border;
