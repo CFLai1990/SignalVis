@@ -6,8 +6,9 @@ require.config({
         },
         "jqueryUI": {
             export:"$",
-            deps: ['jquery']
-        }
+            deps: ['jquery'],
+        },
+        'tooltip': ['jquery', 'bootstrap'],
      },
     paths: {
         // libs loader
@@ -30,6 +31,7 @@ require.config({
         "colorbrewer":["../bower_components/colorbrewer"],
         // templates path
         'templates': '../templates',
+        'tooltip': '../bower_components/tooltip',
 
         'datacenter': 'models/datacenter.model',
         'config': 'models/config.model',

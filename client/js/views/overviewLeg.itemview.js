@@ -35,14 +35,16 @@ define([
         {
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
-            self.margin = {top: t_height * 0.2, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.24};
-
-            self.chartWidth = t_width - self.margin.left - self.margin.right;
-            self.chartHeight = t_height - self.margin.top - self.margin.bottom;
+            self.margin = {top: t_height * 0.2, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.25};
             
 			var aggCount = Datacenter.get("aggCount");
             var maxCount = d3.max(d3.max(aggCount));
-            var legendElementWidth = 20;
+            var legendElementWidth = t_width * 0.5;
+            if(legendElementWidth * 8 > t_height * 0.8){
+                legendElementWidth = t_height * 0.8 / 8;
+            }
+            self.margin.left = (t_width - legendElementWidth) / 2;
+            self.margin.top = (t_height - 8 * legendElementWidth) / 2;
             
 			self.colorScale = d3.scale.quantile()
                .domain([maxCount,1])
@@ -69,8 +71,8 @@ define([
 	            .attr("class", "lengendText")
 	            .text(function(d) { return Math.round(d); })
 	            .style('alignment-baseline','central')
-	            .attr("x", legendElementWidth+2)
-	            .attr("y", function(d, i) { return legendElementWidth * (8-i); });
+	            .attr("x", legendElementWidth + 8)
+	            .attr("y", function(d, i) { return legendElementWidth * (8-i-0.5); });
 	            
         },
         

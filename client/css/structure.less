@@ -188,11 +188,24 @@ body{
     background-color: #9ecae1 !important;
 }
 
-.navbar-default .navbar-nav > .open > a{
+.navbar-default .navbar-nav > li > a:hover{
+    color: #333 !important;
+}
+
+.navbar-default .navbar-nav > li > a{
+    color: @title-text-color !important;
+}
+
+.navbar-default .navbar-nav > li.open > a{
     color: #000 !important;
     background-color: #8cb8cf !important;
 }
 
 .navbar-default .navbar-nav{
-    font-size: 15px !important;
+    font-size: medium !important;
+}
+
+#ruler{
+    font-size: 12px;
+    visibility: hidden;
 }

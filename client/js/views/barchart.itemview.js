@@ -10,12 +10,18 @@ define([
     'views/svg-base.addon',
 ], function(require, Mn, _, $, Backbone,Datacenter,Config, Variables,SVGBase) {
     'use strict';
+    String.prototype.visualLength = function(d)
+    {
+        var ruler = $("#ruler");
+        ruler.css("font-size",d+'px').text(this);
+        return [ruler[0].offsetWidth, ruler[0].offsetHeight];
+    };
     return Mn.ItemView.extend(_.extend({
         tagName: 'svg',
         template: false,
 
         attributes:{
-            'style' : 'width: 100%; height:50%;'
+            'style' : 'width: 50%; height:50%;'
         },
         events:{
             "click .barTitle": "onClickBarTitle"
@@ -187,7 +193,7 @@ define([
         onShow: function()
         {
             var self = this;
-            self.margin = {top: 20, right: 20, bottom: 30, left: 30},
+            self.margin = {top: 20, right: 20, bottom: 40, left: 30},
 
             self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
             self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
@@ -299,11 +305,43 @@ define([
               .attr("class", "y axis")
               .call(self.yAxis);
 
+              var t_angle = 26, ang = function(vd){return vd/180*Math.PI};
+              var t_allBins = self.model.get("totalBins");
             var t_xg = self.mainRegin.append("g")
               .attr("class", "x axis")
               .attr("transform", "translate(0," + self.chartHeight + ")");
               t_xg
-              .call(self.xAxis);
+              .call(self.xAxis)
+              .selectAll("text")
+              .attr("transform", function(d,i){
+                    var t_text = $(this).text(), t_size, t_savText = t_text.slice(0);
+                    if(t_text.length > 7){
+                        t_text = t_text.slice(0,5)+"...";
+                    }
+                    $(this).text(t_text);
+                    if(t_cate){
+                        t_savText = t_savText + ": " + t_allBins[i];
+                    }
+                    $(this)
+                    .attr("title", t_savText)
+                    .attr("data-placement","top")
+                    .tooltip({
+                        container: '.barchartSVG',
+                    });
+                    t_size = t_text.visualLength(12);
+                    return "rotate("+t_angle+")translate("+
+                    [t_size[0]/2*Math.cos(ang(t_angle)),t_size[0]/2*Math.sin(ang(t_angle))]+")";
+                })
+              .on("mouseover",function(d,i){
+                if(t_cate){
+                    self.$el.find(".totalBin:eq("+i+")").addClass("active");
+                }
+              })
+              .on("mouseout", function(d,i){
+                if(t_cate){
+                    self.$el.find(".totalBin:eq("+i+")").removeClass("active");
+                }                
+              });
             if(t_cate){
                 t_xg.append("line")
                 .attr("x0", 0)
@@ -314,8 +352,9 @@ define([
 
 //Bins
             self.binGroup = self.mainRegin.append("g").attr("class","bins");
-            var binsEnter = self.binGroup.selectAll(".totalBin").data(self.model.get("totalBins")).enter()
+            var binsEnter = self.binGroup.selectAll(".totalBin").data(t_allBins).enter()
                                             .append("g").attr("class","totalBin");
+            var t_bins = self.model.get("totalBins").length, t_xrange = (t_range.x[1] - t_range[0]) / t_bins;
 
              binsEnter.append("rect")
                             .attr("width", self.binWidth)
@@ -351,7 +390,6 @@ define([
                                                     brushRange = null;
                                                 }else{
                                                     var t_start = tt_r[0], t_end = tt_r[1], t_sign = false;
-                                                    console.log(t_start, t_end);
                                                     tt_r = [];                                            
                                                     for(var i in t_d){
                                                         var tt_dict = t_d[i];
