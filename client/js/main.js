@@ -9,6 +9,7 @@ require.config({
             deps: ['jquery'],
         },
         'tooltip': ['jquery', 'bootstrap'],
+        'perfectScrollbar': ['jquery'],
      },
     paths: {
         // libs loader
@@ -29,9 +30,10 @@ require.config({
         "numeric":["../bower_components/numeric.min"],
         "mds":["../bower_components/mds"],
         "colorbrewer":["../bower_components/colorbrewer"],
+        'tooltip': ['../bower_components/tooltip'],
+        'perfectScrollbar': ['../bower_components/perfect-scrollbar.jquery'],
         // templates path
         'templates': '../templates',
-        'tooltip': '../bower_components/tooltip',
 
         'datacenter': 'models/datacenter.model',
         'config': 'models/config.model',

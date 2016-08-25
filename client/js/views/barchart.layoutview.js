@@ -4,11 +4,12 @@ define([
     'underscore',
     'jquery',
     'backbone',
+    'perfectScrollbar',
     'datacenter',
     'config',
     'text!templates/barchart.tpl',
     "views/barchart.collectionview"
-], function(require, Mn, _, $, Backbone, Datacenter, Config,Tpl,barchartCollectionView) {
+], function(require, Mn, _, $, Backbone, Scrollbar, Datacenter, Config,Tpl,barchartCollectionView) {
     'use strict';
     return Mn.LayoutView.extend({
         tagName:"div",
@@ -32,6 +33,7 @@ define([
          onShow: function()
         {
             var self = this;
+            self.$el.find(".barchartSVG").perfectScrollbar();
             self.showChildView('svg', new barchartCollectionView({collection: Datacenter.get("barchartCollection")}));
             // for(var i in self.models){
             //     var t_model = self.models[i], t_name = Config.get("chineseAttrNames")[i];

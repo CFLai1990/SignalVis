@@ -44,8 +44,13 @@ define([
                         .attr("x", function(d,i) {
                             return self.xScale(i);
                         })
-                        .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                        .attr("height", function(d) { return self.yScale(d); });
+                        .attr("y", function(d){
+                            return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                        .attr("height", function(d) { 
+                            if(self.yScale((d==0)?0.1:d)<0){
+                                console.log(d, self.yScale.domain());
+                            }
+                            return self.yScale((d==0)?0.1:d); });
                     self.switchMode();
                 }
                 else {
@@ -124,8 +129,8 @@ define([
 
                 self.mainRegin .transition().duration(500)
                      .selectAll(".filterBin rect")
-                     .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                     .attr("height", function(d) { return self.yScale(d); });
+                     .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                     .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
 
             }
             else if(this.model.get("mode") == "zoomout"){
@@ -134,7 +139,7 @@ define([
                 if(self.model.get("scale") == 'linear') {
                     self.yAxisScale.domain(t_yRange);
 
-                    self.yScale.domain(t_yRange);
+                    self.yScale.domain([0.1,t_yRange[1]]);
 
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                         .tickFormat(function(d) {return Math.round(d / 1e3) + "K";});;
@@ -184,8 +189,8 @@ define([
 
                 self.mainRegin .transition().duration(500)
                      .selectAll(".filterBin rect")
-                     .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                     .attr("height", function(d) { return self.yScale(d); });
+                     .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                     .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
             }
 
         },
@@ -242,10 +247,10 @@ define([
             switch(t_scale){
                 case "linear":
                     self.yAxisScale = d3.scale.linear()
-                                            .domain(t_range.y)
+                                            .domain([0, t_range.y[1]])
                                             .range([self.chartHeight ,0]);
                     self.yScale = d3.scale.linear()
-                        .domain(t_range.y)
+                        .domain([0, t_range.y[1]])
                         .range([0,self.chartHeight]);
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                         .tickFormat(function(d) {return Math.round(d / 1e3) + "K"; });;
@@ -361,8 +366,8 @@ define([
                             .attr("x", function(d,i) {
                                 return self.xScale(i);
                             })
-                            .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                            .attr("height", function(d) { return self.yScale(d); });
+                            .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                            .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
 //Brush
             self.brush = d3.svg.brush()
                                     .x(self.xAxisScale)

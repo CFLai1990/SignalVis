@@ -502,6 +502,7 @@
                 var t_cate = (t_attrs[t_name].type == "category"), t_attr = t_attrs[t_name].attr;
                 if(!t_cate){
                     var t_bins = Config.get("barchart").bins;
+                    console.log(t_name);
                     t_pm[t_attr] = {range: t_bc?t_bc[t_name].get("xRange"):null, count: t_bins};
                 }
                 t_return[t_attr] = 1;

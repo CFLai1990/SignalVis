@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "signaldata2",
+            "currentData": "signal",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},
@@ -162,6 +162,7 @@ define([
         clearAll: function(){
             var self = this;
             self.set("dictionary", null);
+            self.get("barchart").list = null;
         },
     }))();
 });

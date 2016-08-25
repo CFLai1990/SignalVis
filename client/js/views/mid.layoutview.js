@@ -6,9 +6,10 @@ define([
     'backbone',
     'datacenter',
     'config',
+    'perfectScrollbar',
     'text!templates/mid.tpl',
     "views/overviewLeg.itemview"
-], function(require, Mn, _, $, Backbone,Datacenter,Config,Tpl,OverviewLeg) {
+], function(require, Mn, _, $, Backbone,Datacenter,Config,Scrollbar,Tpl,OverviewLeg) {
     'use strict';
 
     return Mn.LayoutView.extend({
@@ -84,6 +85,7 @@ define([
             onShow:function() {
                     this.$el.find("#signalNum").text(Datacenter.get("signals").length);
                     this.updateMidTexts();
+                    $("#stat-view").perfectScrollbar({wheelSpeed: 0.1});
                     this.showChildView("sizeLeg", new OverviewLeg());
             },
 
