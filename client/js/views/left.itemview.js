@@ -33,13 +33,14 @@ define([
         
         specDiagram: function(){
             var self = this;
+            var detailSignals = Datacenter.get('signals');
             var specResult = Variables.get("specResult");
             var filterData = Variables.get("filterData");
             d3.selectAll('.line').remove();
             //console.log(filterData);
             var scope_scale = d3.scale.linear()
-		      .range([-150,15])
-		      .domain([0,3500]);
+    		      .range(d3.extent(detailSignals, function(d) { return d.scopedbm; }))
+    		      .domain([426,2245]);
             
             specResult.forEach(function(d){
            	   d.scope = scope_scale(d.scope);
@@ -50,43 +51,43 @@ define([
               .y(function(d) { return self.y_line(d.scope); });
             
             self.svg_line.append("path")
-		      .datum(specResult)
-		      .attr("class", "line")
-		      .attr("clip-path", "url(#clip)")
-		      .attr("d", line)
-		      .style('fill','none')
-		      .style('stroke','#00AEEF')
-		      .style('stroke-width',.5)
-		      .style("cursor","pointer")
-		      .on("mouseover",function(d){
-		      	var x0 = self.x_line.invert(d3.mouse(this)[0]),
-		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-		      	line_showTooltip(x0,y0);
-		      })
-		      .on("mouseout",function(){
-		      	line_hideTooltip();
-		      });
+    		      .datum(specResult)
+    		      .attr("class", "line")
+    		      .attr("clip-path", "url(#clip)")
+    		      .attr("d", line)
+    		      .style('fill','none')
+    		      .style('stroke','#00AEEF')
+    		      .style('stroke-width',.5)
+    		      .style("cursor","pointer")
+    		      .on("mouseover",function(d){
+    		      	var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      	line_showTooltip(x0,y0);
+    		      })
+    		      .on("mouseout",function(){
+    		      	line_hideTooltip();
+    		      });
 		      
-//		    self.svg_line.selectAll("circle")
-//		      .data(filterData)
-//		      .enter()
-//		      .append("circle")
-//		      .attr("class", "signalPoint") 
-//		      .attr("cx", function(d){return self.x_line(d.midfre);})
-//		      .attr("cy", function(d){return self.y_line(d.scopedbm);})
-//		      .attr("r",2.5)
-//		      .style('fill','red')
-//		      .style('stroke','red')
-//		      .style('stroke-width',.5)
-//		      .style("cursor","pointer");
-//		      .on("mouseover",function(d){
-//		      	var x0 = self.x_line.invert(d3.mouse(this)[0]),
-//		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-//		      	line_showTooltip(x0,y0);
-//		      })
-//		      .on("mouseout",function(){
-//		      	line_hideTooltip();
-//		      });
+    		    self.svg_line.selectAll("circle")
+    		      .data(filterData)
+    		      .enter()
+    		      .append("circle")
+    		      .attr("class", "signalPoint") 
+    		      .attr("cx", function(d){return self.x_line(d.midfre);})
+    		      .attr("cy", function(d){return self.y_line(d.scopedbm);})
+    		      .attr("r",2.5)
+    		      .style('fill','none')
+    		      .style('stroke','red')
+    		      .style('stroke-width',.5)
+    		      .style("cursor","pointer");
+    		      // .on("mouseover",function(d){
+    		      // 	var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      // 	line_showTooltip(x0,y0);
+    		      // })
+    		      // .on("mouseout",function(){
+    		      // 	line_hideTooltip();
+    		      // });
 		      
         		function line_showTooltip(x,y){
                var tooltip_scatter = self.svg_line.append("g")
@@ -221,17 +222,7 @@ define([
             var detailSignals = Datacenter.get('signals');
             var aggCount_old = Datacenter.get("aggCount");
             var aggCount = numeric.transpose(aggCount_old);
-			//确定新数组有多少行
-//			for(var i=0;i<aggCount_old[0].length;i++){
-//			  aggCount[i] = [];
-//			}
-//			//实现数组转置
-//			//遍历原数组
-//			for(var i=0;i<aggCount_old.length;i++){
-//			 for(var j=0;j<aggCount_old[i].length;j++){
-//			  	aggCount[j][i] = aggCount_old[i][j];
-//			 }
-//			}
+
             var maxCount = d3.max(d3.max(aggCount));
             var minCount = d3.min(d3.min(aggCount));
 
@@ -244,6 +235,7 @@ define([
                 w = self.chartWidth/aggCount[0].length;
             var brush_height = self.chartHeight;
             
+            //console.log(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
             var time_range = d3.extent(detailSignals, function(d) { return d.firsttime; });
             var start_time = time_range[0];
 //useful variables END
@@ -359,7 +351,7 @@ define([
 //heatmap END
 //时间定位线
             self.symbol = d3.svg.symbol().type('triangle-up')
-               	    .size(40);
+               	    .size(80);
                 
 		        self.timeFocus = self.mainRegin.append("g")
 		            .attr("class", "timeFocus")
@@ -396,7 +388,7 @@ define([
 	                .on('mousedown',drawlinechart);
 
 		        var trangle = self.timeFocus.append('path')
-		          	.attr("dx", "-.7em")
+		          	.attr("dx", "-1.7em")
 		       		.attr("transform", "rotate(90)")
 		            .attr('d',self.symbol)
 		            .attr('fill','#fb9235');
@@ -426,7 +418,7 @@ define([
                     
 			//	console.log(d3.extent(detailSignals, function(d) { return d.midfre; }));
                 self.x_line.domain(d3.extent(detailSignals, function(d) { return d.midfre; }));
-                self.y_line.domain([-150,15]);
+                self.y_line.domain(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
      
                  self.svg_line.append("g")
                       .attr("class", "x axis")
@@ -449,10 +441,10 @@ define([
                       .text("功率(dBm)");
                       
                   self.svg_line.append("defs").append("clipPath")
-				    	  .attr("id", "clip")
-				    .append("rect")
-				      .attr("width", self.Width_line)
-				      .attr("height", self.Height_line);
+      				    	  .attr("id", "clip")
+      				      .append("rect")
+      				        .attr("width", self.Width_line)
+      				        .attr("height", self.Height_line);
 
 
             function drawlinechart(){
@@ -461,7 +453,7 @@ define([
                 //frame number
                 var frame_num = parseInt((parseInt((current_time - start_time)/1000))/(231/3008));
                                 
-				d3.select('.line_title').remove();
+				        d3.select('.line_title').remove();
 
                 self.svg_line.append('g')
                   .attr("transform", "translate(" + self.Width_line/4 + ",10)")
