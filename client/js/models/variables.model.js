@@ -26,7 +26,8 @@ define([
 
             //filter result
             "specResult":null,
-
+			"filterData":null,
+			
             "dimensions": {},
         },
 
