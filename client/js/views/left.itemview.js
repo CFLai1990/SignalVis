@@ -127,11 +127,11 @@ define([
         {
           var self = this;
               if(filterSignals){
-				  Variables.set("zoominFirsttimeFilterRange",null);
+				          Variables.set("zoominFirsttimeFilterRange",null);
                   Variables.set("zoominMidfreFilterRange",null);
 
                   self.xAxisScale.domain([self.x0,self.x1]);
-                  self.yAxisScale.domain([self.y1,self.y0]);
+                  self.yAxisScale.domain([self.y0,self.y1]);
                   self.d3el.selectAll('.row').style("display", "none");
                   self.d3el.selectAll('.grid').style("display", "none");
                   self.d3el.selectAll(".scatter").remove();
@@ -154,8 +154,8 @@ define([
                     .attr("class", "point")
                     .attr("r", function(d) { return self.scattersizeScale(d.bandwidth);})
                     .attr("fill",'#00AEEF')
-                    .attr("cx", function(d) { return self.xAxisScale(new Date(d.firsttime)); })
-                    .attr("cy", function(d) { return self.yAxisScale(d.midfre); })
+                    .attr("cx", function(d) { return self.xAxisScale(d.midfre); })
+                    .attr("cy", function(d) { return self.yAxisScale(new Date(d.firsttime)); })
                     .style('cursor','pointer')
                     .on('mouseover',function(d){showTooltip(d,this);})
                     .on('mouseout',function(d){hideTooltip(d,this);});
@@ -188,12 +188,12 @@ define([
                           y1_sca = extent_scatter[1][1];
 
                       var brushxRange_sca = [];
-                            brushxRange_sca.push(x0_sca.getTime());
-                            brushxRange_sca.push(x1_sca.getTime());
+                            brushxRange_sca.push(x0_sca);
+                            brushxRange_sca.push(x1_sca);
 
                       var brushyRange_sca = [];
-                            brushyRange_sca.push(y0_sca);
-                            brushyRange_sca.push(y1_sca);
+                            brushyRange_sca.push(y0_sca.getTime());
+                            brushyRange_sca.push(y1_sca.getTime());
 
                       if(brush_scatter.empty()) {
                         Variables.set("zoominFirsttimeFilterRange",null);
@@ -201,8 +201,8 @@ define([
                       }
 
                       else {
-                        Variables.set("zoominFirsttimeFilterRange",brushxRange_sca);
-                        Variables.set("zoominMidfreFilterRange",brushyRange_sca);
+                        Variables.set("zoominFirsttimeFilterRange",brushyRange_sca);
+                        Variables.set("zoominMidfreFilterRange",brushxRange_sca);
                       }
                 }
 
@@ -575,27 +575,27 @@ define([
                           self.y1 = extent2[1];
 
                       var brushxRange = [];
-                            brushxRange.push(self.x0.getTime());
-                            brushxRange.push(self.x1.getTime());
+                            brushxRange.push(self.x0);
+                            brushxRange.push(self.x1);
 
                       var brushyRange = [];
-                            brushyRange.push(self.y0);
-                            brushyRange.push(self.y1);
+                            brushyRange.push(self.y0.getTime());
+                            brushyRange.push(self.y1.getTime());
 
                       if(brush1.empty()) {
-                        Variables.setFilterRange("timeDate", null, true);
-                      }
-
-                      else {
-                        Variables.setFilterRange("timeDate", brushxRange, true);
-                      }
-
-                      if(brush2.empty()) {
                         Variables.setFilterRange("freq", null, true);
                       }
 
                       else {
-                        Variables.setFilterRange("freq", brushyRange, true);
+                        Variables.setFilterRange("freq", brushxRange, true);
+                      }
+
+                      if(brush2.empty()) {
+                        Variables.setFilterRange("timeDate", null, true);
+                      }
+
+                      else {
+                        Variables.setFilterRange("timeDate", brushyRange, true);
                       }
 
                       if(!brush1.empty() && !brush2.empty()) {
@@ -632,8 +632,8 @@ define([
                     d3.select(".brush2").style("display", null);
                     d3.select(".brush2 .extent").attr("height", 0);
 
-                    self.xAxisScale.domain([minDate,maxDate]);
-                    self.yAxisScale.domain([maxMidfre,minMidfre]);
+                    self.xAxisScale.domain([minMidfre,maxMidfre]);
+                    self.yAxisScale.domain([minDate,maxDate]);
 
                     reset_xaxis();
                     reset_yaxis();
