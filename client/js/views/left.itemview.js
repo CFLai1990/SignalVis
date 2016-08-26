@@ -258,8 +258,8 @@ define([
                                 .domain([minMidfre,maxMidfre]);
 
             self.colorScale = d3.scale.quantize()
-                            .domain([maxCount,1])
-                            .range(colorbrewer.RdYlGn[8]);
+                            .domain([maxCount,0])
+                            .range(colorbrewer.YlGnBu[9]);
 
             var brush1 = d3.svg.brush()
                          .x(self.xAxisScale)
@@ -317,9 +317,9 @@ define([
              .attr("width", w)
              .attr("height", h)
              .style("fill", function(d) {
-                    if(d.value == 0)
-                      return "#000";
-                    else
+                    // if(d.value == 0)
+                    //   return "#000";
+                    // else
                       return self.colorScale(d.value);
              })
              .on("mouseover", function(d) {

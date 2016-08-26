@@ -40,15 +40,15 @@ define([
 			var aggCount = Datacenter.get("aggCount");
             var maxCount = d3.max(d3.max(aggCount));
             var legendElementWidth = t_width * 0.5;
-            if(legendElementWidth * 8 > t_height * 0.8){
-                legendElementWidth = t_height * 0.8 / 8;
+            if(legendElementWidth * 9 > t_height * 0.8){
+                legendElementWidth = t_height * 0.8 / 9;
             }
             self.margin.left = (t_width - legendElementWidth) / 2;
-            self.margin.top = (t_height - 8 * legendElementWidth) / 2;
+            self.margin.top = (t_height - 9 * legendElementWidth) / 2;
             
 			self.colorScale = d3.scale.quantile()
-               .domain([maxCount,1])
-               .range(colorbrewer.RdYlGn[8]);
+               .domain([maxCount,0])
+               .range(colorbrewer.YlGnBu[9]);
                             
             self.mainRegin = self.d3el.append("g")
                .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
@@ -65,15 +65,15 @@ define([
 	            .attr("y", function(d, i) { return legendElementWidth * i; })
 	            .attr("width", legendElementWidth)
 	            .attr("height", legendElementWidth)
-	            .style("fill", function(d, i) { return colorbrewer.RdYlGn[8][i]; });
+	            .style("fill", function(d, i) { return colorbrewer.YlGnBu[9][i]; });
 	            
 	        legend.append("text")
 	            .attr("class", "lengendText")
-	            .text(function(d) { return Math.round(d); })
+	            .text(function(d) { return Math.ceil(d); })
 	            .style('alignment-baseline','central')
 	            .style("fill","#fff")
-	            .attr("x", legendElementWidth + 8)
-	            .attr("y", function(d, i) { return legendElementWidth * (8-i-0.5); });
+	            .attr("x", legendElementWidth + 9)
+	            .attr("y", function(d, i) { return legendElementWidth * (9-i-0.5); });
 	            
         },
         
