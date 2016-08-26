@@ -122,7 +122,7 @@ define([
                     {"name": "firsttime", "attr": "timeDate", "scale": "time"},
                     {"name": "midfre", "attr": "freq", "scale": "linear"},
                 ],
-                "plansize": [240, 120],
+                "plansize": [240, 240],
                 "size": null,
             },
             "projection": {
