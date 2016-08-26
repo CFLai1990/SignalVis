@@ -302,6 +302,12 @@ define([
               .style("text-anchor", "start")
               .style("fill","#fff")
               .text("发现时间");
+
+            self.mainRegin.append("defs").append("clipPath")
+              .attr("id", "clip_heatmap")
+              .append("rect")
+              .attr("width", self.chartWidth)
+              .attr("height", self.chartHeight);
 //heatmap
           var row = self.mainRegin.selectAll(".row")
              .data(aggCount)
@@ -312,8 +318,9 @@ define([
              .data(function (d,i) { return d.map(function(a,j) { return {value: a, gridrow: i, gridcol: j}; } ) })
            .enter().append("rect")
              .attr("class", "grid")
+             .attr("clip-path", "url(#clip_heatmap)")
              .attr("x", function(d, i) { return self.xScale(i); })
-             .attr("y", function(d, i) { return self.yScale(d.gridrow); })
+             .attr("y", function(d, i) { return self.yScale(d.gridrow)-h; })
              .attr("width", w)
              .attr("height", h)
              .style("fill", function(d) {
