@@ -57,7 +57,6 @@ define([
     		      .attr("clip-path", "url(#clip)")
     		      .attr("d", line)
     		      .style('fill','none')
-    		      .style('stroke','#00AEEF')
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer")
     		      .on("mouseover",function(d){
@@ -77,8 +76,6 @@ define([
     		      .attr("cx", function(d){return self.x_line(d.midfre);})
     		      .attr("cy", function(d){return self.y_line(d.scopedbm);})
     		      .attr("r",2.5)
-    		      .style('fill','none')
-    		      .style('stroke','red')
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer");
     		      // .on("mouseover",function(d){
@@ -211,6 +208,30 @@ define([
             }
         },
 
+        max: function(v_arr){
+            var t_max = -Infinity;
+            for(var i in v_arr){
+                for(var j in v_arr[i]){
+                    if(v_arr[i][j] > t_max){
+                        t_max = v_arr[i][j];
+                    }
+                }
+            }
+            return t_max;
+        },
+
+        min: function(v_arr){
+            var t_min = Infinity;
+            for(var i in v_arr){
+                for(var j in v_arr[i]){
+                    if(v_arr[i][j] < t_min){
+                        t_min = v_arr[i][j];
+                    }
+                }
+            }
+            return t_min;
+        },
+
         onShow: function()
         {
             var self = this;
@@ -224,8 +245,10 @@ define([
             var aggCount_old = Datacenter.get("aggCount");
             var aggCount = numeric.transpose(aggCount_old);
 
-            var maxCount = d3.max(d3.max(aggCount));
-            var minCount = d3.min(d3.min(aggCount));
+            var maxCount = self.max(aggCount);
+            var minCount = self.min(aggCount);
+            var t_self = function(d){return d;}
+            var t_transform = (maxCount - minCount)>100?Math.log:t_self;
 
             var minDate  = new Date(Datacenter.get("minTime"));
             var maxDate  = new Date(Datacenter.get("maxTime"));
@@ -258,8 +281,8 @@ define([
                                 .domain([minMidfre,maxMidfre]);
 
             self.colorScale = d3.scale.quantize()
-                            .domain([maxCount,1])
-                            .range(colorbrewer.RdYlGn[8]);
+                            .domain([t_transform(maxCount),0])
+                            .range(colorbrewer.YlGnBu[9]);
 
             var brush1 = d3.svg.brush()
                          .x(self.xAxisScale)
@@ -325,9 +348,9 @@ define([
              .attr("height", h)
              .style("fill", function(d) {
                     if(d.value == 0)
-                      return "#000";
+                      return "#020919";
                     else
-                      return self.colorScale(d.value);
+                      return self.colorScale(t_transform(d.value));
              })
              .on("mouseover", function(d) {
                  d3.select(this).style("stroke","black");

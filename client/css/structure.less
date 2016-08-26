@@ -20,6 +20,10 @@ body{
 
 .navbar{
     margin-bottom: 0px !important;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    border-bottom: 2px solid #888;
 }
 
 #signal-app{
@@ -168,7 +172,7 @@ body{
         .node {
             // stroke: #000;
             //opacity:0.1;
-            fill:@color1;
+            fill:@color5;
         }
 
     }
@@ -210,6 +214,15 @@ body{
 
 .navbar-default .navbar-nav{
     font-size: medium !important;
+}
+
+.signalPoint{
+    stroke: none;
+    fill: #fb9235;
+}
+
+.line{
+    stroke: @color5;
 }
 
 #ruler{
