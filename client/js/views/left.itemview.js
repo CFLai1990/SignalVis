@@ -37,6 +37,7 @@ define([
             var specResult = Variables.get("specResult");
             var filterData = Variables.get("filterData");
             d3.selectAll('.line').remove();
+            d3.selectAll('.signalPoint').remove();
             //console.log(filterData);
             var scope_scale = d3.scale.linear()
     		      .range(d3.extent(detailSignals, function(d) { return d.scopedbm; }))
@@ -60,15 +61,15 @@ define([
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer")
     		      .on("mouseover",function(d){
-    		      	var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
     		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      	line_showTooltip(x0,y0);
+    		      	  line_showTooltip(x0,y0);
     		      })
     		      .on("mouseout",function(){
-    		      	line_hideTooltip();
+    		      	  line_hideTooltip();
     		      });
 		      
-    		    self.svg_line.selectAll("circle")
+    		    self.svg_line.selectAll(".signalPoint")
     		      .data(filterData)
     		      .enter()
     		      .append("circle")
