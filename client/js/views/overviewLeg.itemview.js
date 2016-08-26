@@ -71,6 +71,7 @@ define([
 	            .attr("class", "lengendText")
 	            .text(function(d) { return Math.round(d); })
 	            .style('alignment-baseline','central')
+	            .style("fill","#fff")
 	            .attr("x", legendElementWidth + 8)
 	            .attr("y", function(d, i) { return legendElementWidth * (8-i-0.5); });
 	            

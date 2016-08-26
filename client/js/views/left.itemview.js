@@ -98,7 +98,7 @@ define([
                   .attr("font-size", '13px')
                   .attr("x", self.Width_line/3)
                   .attr("y", 10)
-                  .attr("fill","black")
+                  .attr("fill","#fff")
                   .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm");
 
                tooltip_scatter.append('line')
@@ -288,6 +288,7 @@ define([
               .attr("x", self.chartWidth)
               .attr("y", 30)
               .style("text-anchor", "end")
+              .style("fill","#fff")
               .text("中心频率(MHz)");
 //yAxis
             self.mainRegin.append("g")
@@ -299,6 +300,7 @@ define([
               .attr("y", -10)
               .attr("dy", ".7em")
               .style("text-anchor", "start")
+              .style("fill","#fff")
               .text("发现时间");
 //heatmap
           var row = self.mainRegin.selectAll(".row")
@@ -316,7 +318,7 @@ define([
              .attr("height", h)
              .style("fill", function(d) {
                     if(d.value == 0)
-                      return "white";
+                      return "#000";
                     else
                       return self.colorScale(d.value);
              })
@@ -341,7 +343,7 @@ define([
                       .attr("height", 30)
                       .attr("x", 134)
                       .attr("y", -10)
-                      .attr("fill","black")
+                      .attr("fill","#fff")
                       .text("信号数: "+d.value+" 中心频率范围: ["+grid_time_st + "," + grid_time_ed + "] 时间范围: ["+grid_Mid_st + "," + grid_Mid_ed + "]");
 
              })
@@ -429,6 +431,7 @@ define([
                       .attr("dx", self.Width_line)
                       .attr("dy", 27)
                       .style("text-anchor", "end")
+                      .style("fill","#fff")
                       .text("中心频率(MHz)");
 
                   self.svg_line.append("g")
@@ -439,6 +442,7 @@ define([
                       .attr("y", -10)
                       .attr("dy", ".7em")
                       .style("text-anchor", "start")
+                      .style("fill","#fff")
                       .text("功率(dBm)");
                       
                   self.svg_line.append("defs").append("clipPath")
@@ -460,6 +464,7 @@ define([
                   .attr("transform", "translate(" + self.Width_line/4 + ",10)")
                   .append("text")
                   .style("text-anchor", "middle")
+                  .style("fill","#fff")
                   .attr("class","line_title")
                   .text("时间：" + y_time);
                   

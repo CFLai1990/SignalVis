@@ -7,6 +7,7 @@
   .barTitle{
       cursor:pointer;
       font-size: 14px;
+      fill: #FFFFFF;
   }
   overflow: auto;
 }
@@ -51,8 +52,13 @@
 .axis path,
 .axis line {
   fill: none;
-  stroke: #000;
+  //stroke: #000;
+  stroke: #fff;
   shape-rendering: crispEdges;
+}
+
+.axis text {
+   fill: #fff;
 }
 
 .bar {
@@ -93,6 +99,7 @@
 }
 
 .totalBin.active rect{
-  stroke: #000;
+  //stroke: #000;
+  stroke: #fff;
   stroke-width: 2px;
 }
