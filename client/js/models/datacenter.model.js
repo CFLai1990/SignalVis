@@ -448,7 +448,7 @@
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.getData("dataTable");
             $.ajax({
-                url: "/query?"+JSON.stringify({
+                url: "SignalVis/query?"+JSON.stringify({
                     table: t_table,
                     condition: v_condition,
                     command: v_command,

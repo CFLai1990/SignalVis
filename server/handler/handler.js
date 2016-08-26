@@ -74,6 +74,7 @@ function initialize(root, db, views, logger){
 
 	function handleQuery(request, response){
 		logger.log("    Handler: Query!");
+		console.log(request.url);
 		var t_conditions = JSON.parse(decodeURI(request.url.replace("/query?", "")));
 		var responseFunc = function(v_result){
 			if(!v_result){
