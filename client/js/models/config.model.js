@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "signaldata1",
+            "currentData": "signal",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},

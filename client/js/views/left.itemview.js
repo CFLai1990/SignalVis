@@ -30,22 +30,22 @@ define([
                   }
           	 });
         },
-        
+
         specDiagram: function(){
             var self = this;
             var detailSignals = Datacenter.get('signals');
             var specResult = Variables.get("specResult");
             var filterData = Variables.get("filterData");
-           
+
             d3.selectAll('.line').remove();
             d3.selectAll('.signalPoint').remove();
             d3.selectAll('.timeFocus_line').remove();
             d3.selectAll('.overlay_line').remove();
-            
+
             var scope_scale = d3.scale.linear()
     		      .range(d3.extent(detailSignals, function(d) { return d.scopedbm; }))
     		      .domain([426,2245]);
-            
+
             var bandwidth_scale = d3.scale.linear()
               .range([5,20])
               .domain(d3.extent(filterData, function(d) { return d.bandwidth; }));
@@ -57,11 +57,11 @@ define([
             specResult.forEach(function(d){
            	   d.scope = scope_scale(d.scope);
             });
-            
+
             var line = d3.svg.line()
               .x(function(d) { return self.x_line(d.frequency); })
               .y(function(d) { return self.y_line(d.scope); });
-            
+
             self.svg_line.append("path")
     		      .datum(specResult)
     		      .attr("class", "line")
@@ -84,7 +84,7 @@ define([
               .data(filterData)
               .enter()
               .append("path")
-              .attr("class", "signalPoint") 
+              .attr("class", "signalPoint")
               .attr("d", function(d){
                 var x_pos = self.x_line(d.midfre);
                 var y_pos = self.y_line(d.scopedbm);
@@ -109,7 +109,7 @@ define([
     		      	line_hideTooltip();
     		      });
 
-//时间定位线      
+//时间定位线
             self.timeFocus_line = self.svg_line.append("g")
                 .attr("class", "timeFocus_line")
                 .style("display", "none");
@@ -156,11 +156,11 @@ define([
                 self.timeFocus_line.select("text").text("中心频率："+x_fre.toFixed(3)+"MHz 功率："+y_scope.toFixed(3)+"dBm");
             }
 //时间定位线 END
-		      
+
         		function line_showTooltip(x,y,a,b){
                var tooltip_scatter = self.svg_line.append("g")
                   .attr("class", "tooltip_scatter");
-			   
+
                tooltip_scatter.append("text")
                   .attr("font-size", '13px')
                   .attr("x", self.Width_line/3)
@@ -310,7 +310,7 @@ define([
             var h = self.chartHeight/aggCount.length,
                 w = self.chartWidth/aggCount[0].length;
             var brush_height = self.chartHeight;
-            
+
             //console.log(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
             var time_range = d3.extent(detailSignals, function(d) { return d.firsttime; });
             var start_time = time_range[0];
@@ -411,7 +411,7 @@ define([
                  var grid_x_ed = self.xAxisScale.invert(w+w*d.gridcol);
                  var grid_y_st = self.yAxisScale.invert(self.chartHeight-(h*d.gridrow));
                  var grid_y_ed = self.yAxisScale.invert(self.chartHeight-(h+h*d.gridrow));
-                
+
                  var grid_time_st = grid_x_st.toFixed(3);
                  var grid_time_ed = grid_x_ed.toFixed(3);
                  var grid_Mid_st = grid_y_st.toTimeString().substr(0,8);
@@ -437,7 +437,7 @@ define([
 //时间定位线
             self.symbol = d3.svg.symbol().type('triangle-up')
                	    .size(80);
-                
+
 		        self.timeFocus = self.mainRegin.append("g")
 		            .attr("class", "timeFocus")
 		            .style("display", "none");
@@ -495,16 +495,16 @@ define([
 
                 var yAxis_line = d3.svg.axis()
                     .scale(self.y_line)
-                    .orient("left");               
+                    .orient("left");
 
                 self.svg_line = self.d3el.append("g")
                     .attr("transform", "translate(" + self.margin_line.left + "," + self.margin_line.top + ")")
                     .attr("class","svg_line");
-                    
+
 			//	console.log(d3.extent(detailSignals, function(d) { return d.midfre; }));
                 self.x_line.domain(d3.extent(detailSignals, function(d) { return d.midfre; }));
                 self.y_line.domain(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
-     
+
                  self.svg_line.append("g")
                       .attr("class", "x axis")
                       .attr("transform", "translate(0," + self.Height_line + ")")
@@ -526,7 +526,7 @@ define([
                       .style("text-anchor", "start")
                       .style("fill","#fff")
                       .text("功率(dBm)");
-                      
+
                   self.svg_line.append("defs").append("clipPath")
       				    	  .attr("id", "clip")
       				      .append("rect")
@@ -539,7 +539,7 @@ define([
                 var current_time = self.yAxisScale.invert(d3.mouse(this)[1]).getTime();
                 //frame number
                 var frame_num = parseInt((parseInt((current_time - start_time)/1000))/(231/3008));
-                                
+
 				        d3.select('.line_title').remove();
 
                 self.svg_line.append('g')
@@ -549,7 +549,7 @@ define([
                   .style("fill","#fff")
                   .attr("class","line_title")
                   .text("时间：" + y_time);
-                  
+
                 var filterData = detailSignals.filter(function(d){
                   var timeStamp = new Date(d.firsttime).toTimeString().substr(0,8);
                   if(timeStamp == y_time)
@@ -557,7 +557,7 @@ define([
                   else
                     return false;
                 });
-                  
+
                 Datacenter.querySpectrum(frame_num, function(v_d){
 	                Variables.set("specResult", v_d);
 	                Variables.set("filterData",filterData);
@@ -596,7 +596,7 @@ define([
 				    .attr("width", 50)
 				    .attr("height", 50)
 				    .append("xhtml:body")
-				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-plus"></i></span>')
+				    .html('<span class="zoombtn btn btn-default btn-xs"><i class="fa fa-plus"></i></span>')
 				    .on('click',zoomin);
 
     			self.mainRegin.append('svg:foreignObject')
@@ -604,7 +604,7 @@ define([
 				    .attr("width", 50)
 				    .attr("height", 50)
 				    .append("xhtml:body")
-				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-minus"></i></span>')
+				    .html('<span class="zoombtn btn btn-default btn-xs"><i class="fa fa-minus"></i></span>')
 				    .on('click',zoomout);
 //zoom btn END
 //change opacity when brushing

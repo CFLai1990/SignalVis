@@ -108,11 +108,13 @@ function queryBC(v_query, v_aggr, v_sheet, v_conditions, v_callback, v_parameter
         }
         t_ranges[t_attr] = null;
         var t_data;
+        console.log(t_attr);
         var tv_df = t_aggr([
             {'$match': v_conditions.condition},
             {'$group':{_id: '$'+t_attr, attr: {'$addToSet': t_attr}, count:{'$sum': 1}}},
             ]).then(
             function(v_data){
+        console.log(v_data);
                 var tk = v_data[0].attr;
                 t_data = v_data;
                 if(v_parameters[tk]){
