@@ -302,7 +302,7 @@
             var scatterplotModel = new ScatterPlotModel({
                 "xModel": self.get("barcharts")["bandwidth"],
                 "yModel": self.get("barcharts")["carriernoise"],
-                "filterSignals": self.get("filterSignals")
+                "filters":self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
         },
