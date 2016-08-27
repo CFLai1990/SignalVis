@@ -85,9 +85,18 @@ function initialize(root, db, views, logger){
 				response.status(200).jsonp(v_result);
 			}
 		};
+		// console.log(t_conditions.command);
 		switch(t_conditions.command){
 			case "query":
-				db.query(t_conditions.table, t_conditions.condition, responseFunc);
+				var t_table = t_conditions.table;
+				if(t_conditions.extra){
+					t_table = t_conditions.extra.collection;
+				}
+				db.query(t_table, t_conditions.condition, responseFunc);
+			break;
+			case "queryBC":
+				// db.query(t_conditions.table, t_conditions.condition, views.queryBC(responseFunc, t_conditions.extra));
+				views.queryBC(db.query, db.aggregate, t_conditions.table, t_conditions.condition, responseFunc, t_conditions.extra);
 			break;
 			case "aggregate":
 				db.aggregate(t_conditions.table, t_conditions.condition, responseFunc);

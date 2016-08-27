@@ -102,7 +102,8 @@ function query(v_sheet, v_conditions, callback){
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		// console.log("      DB: Connected correctly to server");
-		var collection = db.collection(v_sheet);
+		var collection;
+		collection = db.collection(v_sheet);
 		collection.find(v_conditions.condition, v_conditions.return).toArray(function(err, docs) {
 			assert.equal(err, null);
 			// console.log("      DB: The following records are found");

@@ -1,0 +1,1 @@
+db.Spectrum.createIndex({"frameNum": 1});

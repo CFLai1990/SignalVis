@@ -15,7 +15,7 @@ define([
 
             attributes: {
                 "id":"BarCharts",
-                'style' : 'width: 100%; height:30%; margin: 1.75% 0% 1.75% 1%'
+                'style' : 'width: 100%; height:100%; margin: 1.75% 0% 1.75% 1%'
             },
 
             childView: BarChart_ModelView,

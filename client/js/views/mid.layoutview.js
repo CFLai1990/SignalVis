@@ -6,9 +6,10 @@ define([
     'backbone',
     'datacenter',
     'config',
+    'perfectScrollbar',
     'text!templates/mid.tpl',
     "views/overviewLeg.itemview"
-], function(require, Mn, _, $, Backbone,Datacenter,Config,Tpl,OverviewLeg) {
+], function(require, Mn, _, $, Backbone,Datacenter,Config,Scrollbar,Tpl,OverviewLeg) {
     'use strict';
 
     return Mn.LayoutView.extend({
@@ -37,11 +38,12 @@ define([
                 self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                         self.onChangeFilterSignals(filterSignals);
                 });
-                self.listenTo(Variables, "changeFilterRange",  function(model,midfreFilterRange){
+                self.listenTo(Variables, "changeFilterRange",  function(model){
                         self.updateMidTexts();
                 });
-
-
+                self.listenTo(Datacenter, "updateFilterCount", function(v_count){
+                        self.updateCountText(v_count);
+                })
             },
             onClickColorBtns: function(evt) {
                 var values = evt.target.getAttribute("data-value")
@@ -83,7 +85,12 @@ define([
             onShow:function() {
                     this.$el.find("#signalNum").text(Datacenter.get("signals").length);
                     this.updateMidTexts();
+                    $("#stat-view").perfectScrollbar({wheelSpeed: 0.1});
                     this.showChildView("sizeLeg", new OverviewLeg());
+            },
+
+            updateCountText: function(v_count){
+                this.$el.find("#signalNum").text(v_count);
             },
 
             updateMidTexts: function(){
@@ -109,7 +116,7 @@ define([
                             }
                         }
                         if(!t_range){
-                            console.log("No attribute: " + i);
+                            // console.log("No attribute: " + i);
                             this.$el.find("."+t_atobj.text).css("display", "none");
                         }else{
                             var rangeText;
@@ -212,12 +219,9 @@ define([
             },
 
             onChangeFilterSignals:function(filterSignals) {
-                if(!filterSignals)
+                if(!filterSignals){
                     this.$el.find("#signalNum").text(Datacenter.get("signals").length);
-                else
-                    this.$el.find("#signalNum").text(filterSignals.length);
-
-
+                }
             },
             onMouOverBtn:function(evt) {
                 // console.log(evt);

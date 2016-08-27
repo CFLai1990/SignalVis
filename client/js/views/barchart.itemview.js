@@ -10,12 +10,18 @@ define([
     'views/svg-base.addon',
 ], function(require, Mn, _, $, Backbone,Datacenter,Config, Variables,SVGBase) {
     'use strict';
+    String.prototype.visualLength = function(d)
+    {
+        var ruler = $("#ruler");
+        ruler.css("font-size",d+'px').text(this);
+        return [ruler[0].offsetWidth, ruler[0].offsetHeight];
+    };
     return Mn.ItemView.extend(_.extend({
         tagName: 'svg',
         template: false,
 
         attributes:{
-            'style' : 'width: 100%; height:100%;'
+            'style' : 'width: 50%; height:50%;'
         },
         events:{
             "click .barTitle": "onClickBarTitle"
@@ -38,8 +44,13 @@ define([
                         .attr("x", function(d,i) {
                             return self.xScale(i);
                         })
-                        .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                        .attr("height", function(d) { return self.yScale(d); });
+                        .attr("y", function(d){
+                            return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                        .attr("height", function(d) { 
+                            if(self.yScale((d==0)?0.1:d)<0){
+                                console.log(d, self.yScale.domain());
+                            }
+                            return self.yScale((d==0)?0.1:d); });
                     self.switchMode();
                 }
                 else {
@@ -62,9 +73,9 @@ define([
 
                     var ymax = _.max(filterBins);
                     if(self.model.get("scale") == 'linear') {
-                        self.yAxisScale.domain([0,ymax]);
+                        self.yAxisScale.domain([0.1,ymax]);
 
-                        self.yScale.domain([0,ymax]);
+                        self.yScale.domain([0.1,ymax]);
                         if(ymax > 10000){
                             self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                                 .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
@@ -77,19 +88,32 @@ define([
                     else if(self.model.get("scale") == 'power') {
                         var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                         formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
-                        self.yAxisScale.domain([1,ymax]);
+                        self.yAxisScale.domain([0.1,ymax]);
 
-                        self.yScale.domain([1,ymax]);
+                        self.yScale.domain([0.1,ymax]);
 
                         var tickValues = [];
-                        for(var j=0;Math.pow(10,j)<=t_yRange[1];j++) {
+                        for(var j=-1;Math.pow(10,j)<=t_yRange[1];j++) {
                             tickValues.push(Math.pow(10,j));
                         }
                         self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                                 .tickValues(tickValues)
                                                  .tickFormat(function (d) {
                                                         var result = Math.log10(d);
-                                                         return "10" + formatPower(result);
+                                                        switch(result){
+                                                            case -1:
+                                                                return 0;
+                                                            break;
+                                                            case 0:
+                                                                return 1;
+                                                            break;
+                                                            case 1:
+                                                                return 10;
+                                                            break;
+                                                            default:
+                                                                return "10" + formatPower(result);
+                                                            break;
+                                                        }
                                                 });
                     }
                     else {
@@ -105,17 +129,17 @@ define([
 
                 self.mainRegin .transition().duration(500)
                      .selectAll(".filterBin rect")
-                     .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                     .attr("height", function(d) { return self.yScale(d); });
+                     .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                     .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
 
             }
             else if(this.model.get("mode") == "zoomout"){
                 self.d3el.select(".barTitle")
-                     .text(self.theTitle + " (全局)");
+                     .text(self.theTitle);
                 if(self.model.get("scale") == 'linear') {
                     self.yAxisScale.domain(t_yRange);
 
-                    self.yScale.domain(t_yRange);
+                    self.yScale.domain([0.1,t_yRange[1]]);
 
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                         .tickFormat(function(d) {return Math.round(d / 1e3) + "K";});;
@@ -123,20 +147,32 @@ define([
                 else if(self.model.get("scale") == 'power') {
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                     formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
-                    self.yAxisScale.domain([100,t_yRange[1]]);
+                    self.yAxisScale.domain([0.1,t_yRange[1]]);
 
-                    self.yScale.domain([1,t_yRange[1]]);
+                    self.yScale.domain([0.1,t_yRange[1]]);
 
                     var tickValues = [];
-                    for(var j=2;Math.pow(10,j)<=t_yRange[1];j++) {
+                    for(var j=-1;Math.pow(10,j)<=t_yRange[1];j++) {
                         tickValues.push(Math.pow(10,j));
                     }
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                             .tickValues(tickValues)
                                              .tickFormat(function (d) {
                                                     var result = Math.log10(d);
-                                                     return "10" + formatPower(result);
-
+                                                    switch(result){
+                                                        case -1:
+                                                            return 0;
+                                                        break;
+                                                        case 0:
+                                                            return 1;
+                                                        break;
+                                                        case 1:
+                                                            return 10;
+                                                        break;
+                                                        default:
+                                                            return "10" + formatPower(result);
+                                                        break;
+                                                    }
                                             });
 
                 }
@@ -153,8 +189,8 @@ define([
 
                 self.mainRegin .transition().duration(500)
                      .selectAll(".filterBin rect")
-                     .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                     .attr("height", function(d) { return self.yScale(d); });
+                     .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                     .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
             }
 
         },
@@ -162,7 +198,7 @@ define([
         onShow: function()
         {
             var self = this;
-            self.margin = {top: 20, right: 20, bottom: 15, left: 30},
+            self.margin = {top: 20, right: 20, bottom: 40, left: 30},
 
             self.chartWidth = self.$el.width() - self.margin.left - self.margin.right;
             self.chartHeight = self.$el.height() - self.margin.top - self.margin.bottom;
@@ -174,7 +210,7 @@ define([
                         .attr("y", self.margin.top*0.75)
                         .style("text-anchor", "middle")
                         .attr("class","barTitle")
-                        .text(self.theTitle + " (全局)");
+                        .text(self.theTitle);
 //Scale
             self.binWidth = Math.floor(self.chartWidth / self.model.get("numOfBins"));
             var tt_scale, td_scale;
@@ -211,10 +247,10 @@ define([
             switch(t_scale){
                 case "linear":
                     self.yAxisScale = d3.scale.linear()
-                                            .domain(t_range.y)
+                                            .domain([0, t_range.y[1]])
                                             .range([self.chartHeight ,0]);
                     self.yScale = d3.scale.linear()
-                        .domain(t_range.y)
+                        .domain([0, t_range.y[1]])
                         .range([0,self.chartHeight]);
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
                         .tickFormat(function(d) {return Math.round(d / 1e3) + "K"; });;
@@ -224,24 +260,36 @@ define([
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
                     formatPower = function(d) { return (d + "").split("").map(function(c) { return superscript[c]; }).join(""); };
                     self.yAxisScale = d3.scale.log().base(10).clamp(true)
-                                            .domain([100,ymax])
+                                            .domain([0.1,ymax])
                                             .range([self.chartHeight ,0]);
 
                     self.yScale = d3.scale.log().base(10).clamp(true)
-                        .domain([100,ymax])
+                        .domain([0.1,ymax])
                         .range([0,self.chartHeight]);
 
 
                     var tickValues = [];
-                    for(var j=2;Math.pow(10,j)<=ymax;j++) {
+                    for(var j=-1;Math.pow(10,j)<=ymax;j++) {
                         tickValues.push(Math.pow(10,j));
                     }
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left")
                                             .tickValues(tickValues)
                                              .tickFormat(function (d) {
                                                     var result = Math.log10(d);
-                                                     return "10" + formatPower(result);
-
+                                                    switch(result){
+                                                        case -1:
+                                                            return 0;
+                                                        break;
+                                                        case 0:
+                                                            return 1;
+                                                        break;
+                                                        case 1:
+                                                            return 10;
+                                                        break;
+                                                        default:
+                                                            return "10" + formatPower(result);
+                                                        break;
+                                                    }
                                             });
                 break;
                 default:
@@ -262,11 +310,43 @@ define([
               .attr("class", "y axis")
               .call(self.yAxis);
 
+              var t_angle = 26, ang = function(vd){return vd/180*Math.PI};
+              var t_allBins = self.model.get("totalBins");
             var t_xg = self.mainRegin.append("g")
               .attr("class", "x axis")
               .attr("transform", "translate(0," + self.chartHeight + ")");
               t_xg
-              .call(self.xAxis);
+              .call(self.xAxis)
+              .selectAll("text")
+              .attr("transform", function(d,i){
+                    var t_text = $(this).text(), t_size, t_savText = t_text.slice(0);
+                    if(t_text.length > 7){
+                        t_text = t_text.slice(0,5)+"...";
+                    }
+                    $(this).text(t_text);
+                    if(t_cate){
+                        t_savText = t_savText + ": " + t_allBins[i];
+                    }
+                    $(this)
+                    .attr("title", t_savText)
+                    .attr("data-placement","top")
+                    .tooltip({
+                        container: '.barchartSVG',
+                    });
+                    t_size = t_text.visualLength(12);
+                    return "rotate("+t_angle+")translate("+
+                    [t_size[0]/2*Math.cos(ang(t_angle)),t_size[0]/2*Math.sin(ang(t_angle))]+")";
+                })
+              .on("mouseover",function(d,i){
+                if(t_cate){
+                    self.$el.find(".totalBin:eq("+i+")").addClass("active");
+                }
+              })
+              .on("mouseout", function(d,i){
+                if(t_cate){
+                    self.$el.find(".totalBin:eq("+i+")").removeClass("active");
+                }                
+              });
             if(t_cate){
                 t_xg.append("line")
                 .attr("x0", 0)
@@ -277,16 +357,17 @@ define([
 
 //Bins
             self.binGroup = self.mainRegin.append("g").attr("class","bins");
-            var binsEnter = self.binGroup.selectAll(".totalBin").data(self.model.get("totalBins")).enter()
+            var binsEnter = self.binGroup.selectAll(".totalBin").data(t_allBins).enter()
                                             .append("g").attr("class","totalBin");
+            var t_bins = self.model.get("totalBins").length, t_xrange = (t_range.x[1] - t_range[0]) / t_bins;
 
              binsEnter.append("rect")
                             .attr("width", self.binWidth)
                             .attr("x", function(d,i) {
                                 return self.xScale(i);
                             })
-                            .attr("y", function(d){return self.chartHeight - self.yScale(d);})
-                            .attr("height", function(d) { return self.yScale(d); });
+                            .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
+                            .attr("height", function(d) { return self.yScale((d==0)?0.1:d); });
 //Brush
             self.brush = d3.svg.brush()
                                     .x(self.xAxisScale)
@@ -313,11 +394,20 @@ define([
                                                 if(tt_r[0] == tt_r[1]){
                                                     brushRange = null;
                                                 }else{
-                                                    tt_r = [];
-                                                    for(var i = t_inds[0]; i < t_inds[1]; i++){
-                                                        tt_r.push(t_d[i]);
+                                                    var t_start = tt_r[0], t_end = tt_r[1], t_sign = false;
+                                                    tt_r = [];                                            
+                                                    for(var i in t_d){
+                                                        var tt_dict = t_d[i];
+                                                        if(tt_dict == t_start){
+                                                            t_sign = true;
+                                                        }
+                                                        if(tt_dict == t_end){
+                                                            t_sign = false;
+                                                        }
+                                                        if(t_sign){
+                                                            tt_r.push(tt_dict);
+                                                        }
                                                     }
-                                                    var t_null = false;
                                                     brushRange = [];
                                                     for(var i in tt_r){
                                                         switch(tt_r[i]){
@@ -326,16 +416,15 @@ define([
                                                             break;
                                                             case "NaN":
                                                                 brushRange.push("");
-                                                                t_null = true;
                                                             break;
                                                             default:
-                                                                brushRange.push(tt_r[i]);
+                                                                if(isNaN(tt_r[i])){
+                                                                    brushRange.push(tt_r[i]);
+                                                                }else{
+                                                                    brushRange.push(parseInt(tt_r[i]));
+                                                                }
                                                             break;
                                                         }
-                                                    }
-                                                    var tt_br = brushRange.map(isNaN);
-                                                    if(!d3.set(tt_br).has(true) && !t_null){
-                                                        brushRange = tt_br;
                                                     }
                                                     if(brushRange.length == 0){
                                                         brushRange = null;

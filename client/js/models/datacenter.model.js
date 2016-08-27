@@ -30,43 +30,27 @@
     }
 
     return window.Datacenter = new (Backbone.Model.extend({
-        defaults: function(){
-            return {
+        defaults: {
                 "signals": null,
                 "aggCount": null,
                 "minTime":null,
                 "maxTime":null,
                 "minMidfre":null,
                 "maxMidfre":null,
-                //
-                "bandwidthDictArr":null,
-                "scopeDictArr":null,
-                "carriernoiseDictArr":null,
-                'firsttimeDictArr':null,
-                "midfreDictArr":null,
+
                 //select detail signals
                 "detailSignals":null,
                 //bar chart model
-                "bandwidthBarChart":null,
-                "scopeBarChart":null,
-                "carriernoiseBarChart":null,
-                "barcharts": {},
+                "barcharts": null,
                 "barchartCollection": null,
                 //scatterplot
                 "scatterplot":null,
                 "highdimension":null,
-
-                //filter result
-                "bandwithFilterArr":null,
-                "scopeFilterArr":null,
-                "carriernoiseFilterArr":null,
-                "firsttimeFilterArr":null,
-                "firsttimeFilterArr":null,
-            };
-        },
+            },
 
         initialize: function(){
             var self = this;
+            self.set("barchartCollection", new barchartCollection());
             var queryFunc = function(){
                     var t_df = $.Deferred();
                     self.updateFilterArrWithoutInx(t_df);
@@ -74,20 +58,26 @@
                         self.updateDetailSignals();
                     });
             };
+            self.listenTo(Config, "Config:changeData", self.changeData);
             self.listenTo(Variables,"change:bandwidthFilterRange", queryFunc);
             self.listenTo(Variables,"change:scopeFilterRange", queryFunc);
             self.listenTo(Variables,"change:carriernoiseFilterRange", queryFunc);
             self.listenTo(Variables, "changeFilterRange", queryFunc);
-            // self.listenTo(Variables,"change:mode", queryFunc);
-            // self.listenTo(Variables,"change:firsttimeFilterRange", queryFunc);
-            // self.listenTo(Variables,"change:midfreFilterRange", queryFunc);
             self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
                     self.updateDetailSignals();
             });
             self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
                     self.updateDetailSignals();
             });
-            self.set("barchartCollection", new barchartCollection());
+        },
+
+        changeData: function(){
+            var self = this;
+            Variables.clearAll();
+            Variables.trigger("clearAll");
+            Config.clearAll();
+            self.clearAll();
+            self.start();
         },
 
         start: function(options){
@@ -185,14 +175,7 @@
             var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
             var t_time = d3.extent(_.map(t_signals, "firsttime")),
             t_freq = d3.extent(_.map(t_signals, "midfre"));
-            self.set("timeRange", t_time);
-            self.set("minTime",t_time[0]);
-            self.set("maxTime",t_time[1]);
-            self.set("midfreRange", t_freq);
-            self.set("minMidfre",t_freq[0]);
-            self.set("maxMidfre",t_freq[1]);
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
-            console.log(t_keys);
             for(var i in t_keys){
                 var t_i = t_keys[i];
                 if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
@@ -202,71 +185,83 @@
                 if(!t_a){
                     continue;
                 }
-                var tt_tds = $.Deferred();
-                t_tds.push(tt_tds.promise());
-                self.setBarChart(t_i, t_a.attr, t_a.type, t_a.scale, tt_tds);
+                // var tt_tds = $.Deferred();
+                // t_tds.push(tt_tds.promise());
+                self.setBarChart(t_i, t_a.attr, t_a.type, t_a.scale, null);//tt_tds);
             }
-            var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
-            t_tds.push(tt_tds.promise());
-            self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
-                t_attrs[1].name, t_attrs[1].attr, t_pxl.size, tt_tds);
-            $.whenWithProgress(t_tds, function(){})
-            .then(function(){def.resolve();});
+            var tt_tds_1 = $.Deferred();
+            // t_tds.push(tt_tds_1.promise());
+            self.getBarcharts({}, tt_tds_1, true);
+            $.when(tt_tds_1).done(function(){
+                var t_attrs = t_pxl.attrs, tt_tds_2 = $.Deferred();
+                self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
+                    t_attrs[1].name, t_attrs[1].attr, t_pxl.plansize, tt_tds_2);
+                $.when(tt_tds_2).done(function(){
+                    def.resolve();
+                })
+            });
+            // t_tds.push(tt_tds_2.promise());
+
+            // $.whenWithProgress(t_tds, function(){})
+            // .then(function(){def.resolve();});
         },
 
         setBarChart: function(v_name, v_attr, v_type, v_scale, v_td){
-            var self = this;
-            if(v_type == "category"){
-                var t_dict = Config.get("dictionary")[v_name].entries(), t_keys = [], t_bins = [];
-                for(var i in t_dict){
-                    var tt_dict = t_dict[i];
-                    t_keys[i] = tt_dict.key;
-                    t_bins[i] = tt_dict.value.count;
-                }
-                if(t_keys.length == 1){
-                    t_keys.push("");
-                    t_bins.push(0);
-                }
-                var t_barchart = new BarchartModel({
-                    "attrName": v_name,
-                    "numOfBins": t_bins.length,
-                    "totalBins": t_bins,
-                    "xRange": t_keys,
-                    "yRange": [_.min(t_bins), _.max(t_bins)],
-                    "filterRangeName": v_attr,
-                    "scale": v_scale,
-                    "dictionary": Config.get("dictionary")[v_name],
-                    "category": true,
-                });
-                self.get("barcharts")[v_name] = t_barchart;
-                self.get("barchartCollection").add(t_barchart);
-                Variables.get("filterRanges")[v_attr] = null;
-                v_td.resolve();
-            }else{
-                var t_condition = [{
-                '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$id'}}
-                }];
-                t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
-                self.queryFromDB("barchart", t_condition,
-                    function(v_d){
-                        var t_barchart = new BarchartModel({
-                            "attrName": v_name,
-                            "numOfBins": v_d.binNumber,
-                            "totalBins": v_d.binCount,
-                            "xRange": v_d.xRange,
-                            "yRange": v_d.yRange,
-                            "filterRangeName": v_attr,
-                            "scale": v_scale,
-                            "category": false,
-                        });
-                        self.get("barcharts")[v_name] = t_barchart;
-                        self.get("barchartCollection").add(t_barchart);
-                        Variables.get("filterRanges")[v_attr] = null;
-                    }, v_td, {
-                        key: v_attr,
-                        bins: Config.get("barchart").bins,
-                });
-            }            
+            var self = this, t_list = Config.get("barchart").list;
+            if(!t_list){
+                Config.get("barchart").list = [];
+            }
+            Config.get("barchart").list.push(v_name);
+            // if(v_type == "category"){
+            //     var t_dict = Config.get("dictionary")[v_name].entries(), t_keys = [], t_bins = [];
+            //     for(var i in t_dict){
+            //         var tt_dict = t_dict[i];
+            //         t_keys[i] = tt_dict.key;
+            //         t_bins[i] = tt_dict.value.count;
+            //     }
+            //     if(t_keys.length == 1){
+            //         t_keys.push("");
+            //         t_bins.push(0);
+            //     }
+            //     var t_barchart = new BarchartModel({
+            //         "attrName": v_name,
+            //         "numOfBins": t_bins.length,
+            //         "totalBins": t_bins,
+            //         "xRange": t_keys,
+            //         "yRange": [_.min(t_bins), _.max(t_bins)],
+            //         "filterRangeName": v_attr,
+            //         "scale": v_scale,
+            //         "category": true,
+            //     });
+            //     self.get("barcharts")[v_name] = t_barchart;
+            //     self.get("barchartCollection").add(t_barchart);
+            //     Variables.get("filterRanges")[v_attr] = null;
+            //     v_td.resolve();
+            // }else{
+            //     var t_condition = [{
+            //     '$group':{'_id':"$" + v_attr, 'indexs':{'$push':'$_id'}}
+            //     }];
+            //     t_condition[0]['$group'][v_attr] = {'$first':"$" + v_attr};
+            //     self.queryFromDB("barchart", t_condition,
+            //         function(v_d){
+            //             var t_barchart = new BarchartModel({
+            //                 "attrName": v_name,
+            //                 "numOfBins": v_d.binNumber,
+            //                 "totalBins": v_d.binCount,
+            //                 "xRange": v_d.xRange,
+            //                 "yRange": v_d.yRange,
+            //                 "filterRangeName": v_attr,
+            //                 "scale": v_scale,
+            //                 "category": false,
+            //             });
+            //             self.get("barcharts")[v_name] = t_barchart;
+            //             self.get("barchartCollection").add(t_barchart);
+            //             Variables.get("filterRanges")[v_attr] = null;
+            //         }, v_td, {
+            //             key: v_attr,
+            //             bins: Config.get("barchart").bins,
+            //     });
+            // }
         },
 
         setPixelMap: function(v_name, v_attr, v_subname, v_subattr, v_size, v_td){
@@ -277,6 +272,23 @@
             self.queryFromDB("pixelmap", t_condition,
                 function(v_d){
                     self.set("aggCount", v_d.aggCount);
+                    var t_tr = v_d.range, t_fr = v_d.subRange, t_shift = 8 * 3600 * 1000;
+                    if(v_name == 'firsttime'){
+                        t_tr[0] -= t_shift;
+                        t_tr[1] -= t_shift;
+                    }else{
+                        t_fr[0] -= t_shift;
+                        t_fr[1] -= t_shift;
+                    }
+                    self.set("timeRange", t_tr);
+                    self.set("minTime",t_tr[0]);
+                    self.set("maxTime",t_tr[1]);
+                    self.set("midfreRange", t_fr);
+                    self.set("minMidfre",t_fr[0]);
+                    self.set("maxMidfre",t_fr[1]);
+                    Config.set("size", v_d.size);
+                    Variables.get("filterRanges")["timeDate"] = null;
+                    Variables.get("filterRanges")["baud"] = null;
                 }, v_td, {
                     key: v_attr,
                     attr: v_name,
@@ -324,7 +336,6 @@
                 "carriernoise":carriernoiseRange,
             });
             this.set("detailSignals",detailSignals);
-            console.log(detailSignals);
         },
 
         addDetailSignal:function(midfreInx,timeInx) {
@@ -358,16 +369,19 @@
         updateFilterArrWithoutInx: function(v_df) {
             var self = this;
             var filterRanges = Variables.get("filterRanges"),
-            t_attrs = Config.get("nameList");
+            t_attrs = Config.get("nameList"), t_null = true;
             console.time(1);
-
-            var filters = [];
-            for(var i in filterRanges){
+            var filters = [], t_keys = d3.set(_.keys(filterRanges));
+            for(var i in t_attrs){
+                if(!t_keys.has(i)){
+                    continue;
+                }
                 var t_range = filterRanges[i];
                 if(t_range){
+                    t_null = false;
                     var filter = {
                         name: i,
-                        range: filterRanges[i],
+                        range: filterRanges[i].slice(0),
                     };
                     if(i == "timeDate"){
                         var t_shift = 8 * 3600 * 1000;
@@ -377,17 +391,17 @@
                     filters.push(filter);
                 }
             }
-            if(filters.length == 0) {
+            if(t_null) {
                 Variables.set("filterSignals", null);
+                Variables.trigger("clearFilter");
             }
             else {
                 var filterSignals = [];
-                var signals = this.get("signals");
                 var t_condition = {};
                 for(var i in filters){
                     var t_range = filters[i].range,
                     t_name = filters[i].name;
-                    if(t_attrs[t_name].type == "category"){
+                    if(t_attrs[t_name] && t_attrs[t_name].type == "category"){
                         t_condition[t_name] = {
                             '$in': t_range,
                         }
@@ -398,18 +412,8 @@
                         }
                     }
                 }
-                t_condition = {
-                    condition: t_condition,
-                    return: {'id': 1, '_id': 0},
-                }
-                self.queryFromDB("query", t_condition, function(v_data){
-                    var t_result = d3.set(_.map(v_data, "id"));
-                    filterSignals = _.filter(signals, function(t_s){
-                        return t_result.has(t_s["id"]);
-                    });
-                    console.timeEnd(1);
-                    Variables.set("filterSignals",filterSignals);
-                }, v_df);
+                self.getBarcharts(t_condition, v_df);
+                console.timeEnd(1);
             }
         },
 
@@ -436,6 +440,22 @@
             console.timeEnd(2);
         },
 
+        querySpectrum: function(v_frame, v_callback){
+            var self = this, v_df = $.Deferred();
+            var t_collection = Config.getData("spectrum");
+            console.time(3);
+            self.queryFromDB("query", {
+                    condition: {"frameNum": v_frame},
+                    return: {'scope': 1, 'frequency': 1, '_id': 0},
+                }, function(v_d){
+                    console.timeEnd(3);
+                    v_callback(v_d);
+                    //handle spectrum data
+            }, v_df, {
+                collection: t_collection,
+            });
+        },
+
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.getData("dataTable");
             $.ajax({
@@ -447,7 +467,7 @@
                     update: v_update,
                 }),
                 success: function(v_data){
-                    console.info("Query Sucess!", v_command, v_condition);
+                    console.info("Query Sucess!", v_command, v_condition, v_extra);
                     if(v_callback) v_callback(v_data);
                     if(v_deferred) v_deferred.resolve();
                 },
@@ -457,5 +477,98 @@
             });
         },
 
+        getBarcharts: function(v_condition, v_df, v_init){
+            var self = this, filterSignals;
+            var t_return = self.getBCAttributes(),
+                t_condition = {
+                    condition: v_condition,
+                    return: t_return.attrs,
+                };
+            self.queryFromDB("queryBC", t_condition, function(v_data){
+                if(!v_init){
+                    var t_result = d3.set(v_data.ids), signals = Datacenter.get("signals");
+                    filterSignals = _.filter(signals, function(t_s){
+                        return t_result.has(t_s["id"]);
+                    });
+                    Config.set("test", filterSignals);
+                }
+                if(v_data.count > 0){
+                    self.updateBarcharts(v_data.barcharts, v_data.range);
+                }else{
+                    Variables.trigger("clearFilter");
+                }
+                if(!v_init){
+                    Variables.set("filterSignals",filterSignals);
+                    self.trigger("updateFilterCount", v_data.count);
+                }
+            }, v_df, t_return.parameters);
+        },
+
+        getBCAttributes: function(){
+            var self = this, t_list = Config.get("barchart").list,
+            t_bc = self.get("barcharts"), t_attrs = Config.get("attrs");
+            var t_r = {}, t_return = {'id': 1, '_id': 0}, t_pm = {};
+            for(var i in t_list){
+                var t_name = t_list[i];
+                var t_cate = (t_attrs[t_name].type == "category"), t_attr = t_attrs[t_name].attr;
+                if(!t_cate){
+                    var t_bins = Config.get("barchart").bins;
+                    t_pm[t_attr] = {range: t_bc?t_bc[t_name].get("xRange"):null, count: t_bins};
+                }
+                t_return[t_attr] = 1;
+            }
+            t_r.attrs = t_return;
+            t_r.parameters = t_pm;
+            return t_r;
+        },
+
+        updateBarcharts: function(v_bc, v_range){
+            var self = this, t_nl = Config.get("nameList"), t_attrs = Config.get("attrs"),
+                t_bcs = self.get("barcharts");
+            if(!t_bcs){
+                t_bcs = {};
+                for(var i in v_bc){
+                    var t_name = t_nl[i].name;
+                    t_bcs[t_name] = new BarchartModel(
+                        {
+                            name: t_name,
+                            bins: v_bc[i],
+                            attr: i,
+                            scale: t_attrs[t_name].scale,
+                            category: t_nl[i].type == "category",
+                            range: v_range[i],
+                        });
+                    self.get("barchartCollection").add(t_bcs[t_name]);
+                    Variables.get("filterRanges")[i] = null;
+                }
+                self.set("barcharts", t_bcs);
+            }else{
+                for(var i in v_bc){
+                    var t_name = t_nl[i].name, t_bc = t_bcs[t_name];
+                    if(!t_bc){
+                        console.log("no " + t_name);
+                    }else{
+                        t_bc.update(v_bc[i]);
+                    }
+                }
+            }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.set({
+                "signals": null,
+                "aggCount": null,
+                "minTime":null,
+                "maxTime":null,
+                "minMidfre":null,
+                "maxMidfre":null,
+                "detailSignals":null,
+                "barcharts": null,
+                "scatterplot":null,
+                "highdimension":null,
+            });
+            self.get("barchartCollection").reset();
+        },
     }))();
  });

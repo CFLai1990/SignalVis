@@ -61,7 +61,6 @@ define([
                 self.showChildView('scatterplot', new HighDimensionItemView({
                     model:Datacenter.get("highdimension"),
                     id:"highdimension",
-
                 }));
                 this.updateHD_detailSignalViews();
                 self.showChildView("detailSignal", new DetailSignalItemView({
@@ -90,17 +89,6 @@ define([
                         self.$el.find("#hd"+i).removeClass("active");
                     }
                 }
-                // var highdimension = Datacenter.get("highdimension");
-                // if(highdimension.get("bandwidthActive"))
-                //     this.$el.find("#hdBandwidth").addClass("active");
-                // if(highdimension.get("midFrequencyActive"))
-                //     this.$el.find("#hdMidFrequency").addClass("active");
-                // if(highdimension.get("firsttimeActive"))
-                //     this.$el.find("#hdFirsttime").addClass("active");
-                // if(highdimension.get("scopeActive"))
-                //     this.$el.find("#hdScope").addClass("active");
-                // if(highdimension.get("carriernoiseActive"))
-                //     this.$el.find("#hdCarriernoise").addClass("active");
             },
 
             toggleDimension: function(evt) {

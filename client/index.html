@@ -20,11 +20,28 @@
    <div class="navbar-header">
       <a class="navbar-brand app-navbar-title" href="#">无线信号电磁态势可视化</a>
    </div>
+   <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-folder-open"></span>&nbsp;数据<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li id="950MHz" class="dataLoader"><a> 950MHz</a></li>
+                        <li id="signal" class="dataLoader"><a> signal</a></li>
+                        <li id="signaldata1" class="dataLoader"><a> signaldata1</a></li>
+                        <li id="signaldata2" class="dataLoader"><a> signaldata2</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown" id="HelpDocument">
+                    <a href="#" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-question-sign"></span>&nbsp;帮助</span> </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 </nav>
 
      <div id="signal-app" style = "position:absolute;" >
      </div>
-
+    
        <!-- Loading -->
 <div class="loading" id = 'loading'>
       <div class="back"></div>
@@ -33,5 +50,6 @@
           <span> Loading ...</span>
       </div>
 </div>
+<span id = "ruler"></span>
 </body>
 </html>

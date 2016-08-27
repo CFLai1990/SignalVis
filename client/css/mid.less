@@ -1,4 +1,4 @@
-@select_border_color:#2060d5;
+@select_border_color:#525252;
 @default_border_color:#dcdcdc;
 #mid{
     controlTitle{
@@ -6,16 +6,25 @@
     }
     .title{
         width: 100%;
-        background:@title-background;
+        //background:@color3;
+        background:@select_border_color;
         text {
-            color:@title-text-color;
+            //color:@title-text-color-deep;
+            color: #FFFFFF;
+            font-size: medium;
         }
         padding-left:3px;
+        text-align: center;
     }
     .statCount {
             width: 100%;
             text-align: center;
             vertical-align: middle;
+            margin-top: 2%;
+            margin-bottom: 5%;
+            text{
+                font-size: 13px;
+            }
     }
     .button {
         border-left:2px  solid @default_border_color;
@@ -51,6 +60,7 @@
         position:relative;
         width: 100%;
         height:@mid-stat-height;
+        overflow: auto;
         // border:@border;
 
     }

@@ -69,7 +69,22 @@ define([
                 self.nodeGroups = [];
 
             //split arr for progressive render
-                var subArr,chunk = 1000;
+                var subArr,chunk = 1000, t_length = filterSignals.length, t_opc;
+                switch(Math.floor(Math.log10(t_length))){
+                    case 0:
+                    case 1:
+                        t_opc = 0.9;
+                    break;
+                    case 2:
+                        t_opc = 0.6;
+                    break;
+                    case 3:
+                        t_opc = 0.3;
+                    break;
+                    default:
+                        t_opc = 0.2;
+                    break;
+                }
                 for (var i=0; i<filterSignals.length; i+=chunk) {
                     var nodeGroup = self.mainRegin.append("g").attr("class","nodes");
                     // self.nodeGroups.push();
@@ -89,7 +104,8 @@ define([
                                         .attr("cy", function(d){return self.yScale(d[yAttrName]);})
                                         .attr("r", function(){
                                             return "2px";
-                                        });
+                                        })
+                                        .attr("opacity", t_opc);
                 }
             }
         }

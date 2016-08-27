@@ -21,127 +21,122 @@ define([
             // for plots
             "scale":"linear", // scale method
             "numOfBins": Config.get("barchart").bins,
-            "xmin":null,
-            "xmax":null,
-            "ymin":null,
-            "ymax":null,
+            "xRange": null,
+            "yRange": null,
             "totalBins":null, //[]
             "filterBins":null,
             "mode":"zoomout", //"zoomout" or "zoomin"
+            "dictionary": null,
+            "category": false,
         },
+
         initialize: function(options){
-
             var self = this;
-            // console.log(options);
-            self.set(options);
-            // self.set("attrName",options.attrName);
-            // self.set("dataDictArr",options.dataDictArr);
-            // self.set("filterRange",options.filterRange);
-            // self.set("filterDataArr",options.filterDataArr);
-            // self.set("scale",options.scale);
-            // self.calcTotalBins();
-            self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
-                self.calcFilterBins(filterSignals);
-            });
+            self.init(options);
+            self.settleCategories();
+            // self.set(options);
+            self.listenTo(Variables,"clearFilter", self.clearFilter);
+            self.listenTo(Variables, "clearAll", self.clearAll);
         },
 
-        // calcZoominBins: function() {
-        //     var self = this;
-        //     var attrName = self.get("attrName");
-        //     var dataDictArr = self.get("dataDictArr");
-        //     var numOfBins = self.get("numOfBins");
-
-        //     var xmin = dataDictArr[0][attrName]
-        //     var xmax = dataDictArr[dataDictArr.length - 1][attrName]
-        //     var binRange = (xmax - xmin)/numOfBins
-        //     var filterBins = [];
-        //     for(var i =0;i<numOfBins;i++) {
-        //         filterBins.push(0);
-        //     }
-        //     if(filterSignals) {
-        //         for(var i=0;i<filterSignals.length;i++) {
-        //             var binIndex = parseInt((filterSignals[i][attrName] - xmin)/binRange);
-        //             if(binIndex >=numOfBins)
-        //                 binIndex = numOfBins - 1;
-        //             filterBins[binIndex]  = filterBins[binIndex] + 1;
-        //         }
-        //     }
-        //     else {
-        //         filterBins = null;
-        //     }
-        //     // console.log(filterBins);
-        //     self.set("filterBins",filterBins);
-        // },
-
-        // calcTotalBins: function() {
-        //     var self = this;
-        //     var attrName = self.get("attrName");
-        //     var dataDictArr = self.get("dataDictArr");
-        //     var numOfBins = self.get("numOfBins");
-        //     // var ymax = _.max(dataDictArr, function(o){return o.indexs.length;}).indexs.length;
-        //     // var ymin = _.min(dataDictArr, function(o){return o.indexs.length;}).indexs.length;
-        //     var xmin = dataDictArr[0][attrName]
-        //     var xmax = dataDictArr[dataDictArr.length - 1][attrName]
-        //     var binRange = (xmax - xmin)/numOfBins
-        //     var totalBins = [];
-        //     for(var i =0;i<numOfBins;i++) {
-        //         totalBins.push(0);
-        //     }
-        //     for(var i=0;i<dataDictArr.length;i++) {
-        //         var binIndex = parseInt((dataDictArr[i][attrName] - xmin)/binRange);
-        //         if(binIndex >=numOfBins)
-        //             binIndex = numOfBins - 1;
-        //         totalBins[binIndex]  = totalBins[binIndex] + dataDictArr[i].indexs.length;
-        //     }
-
-        //     var ymax = _.max(totalBins);
-        //     var ymin = 0;
-        //     self.set("ymax",ymax);
-        //     self.set("ymin",ymin);
-        //     self.set("xmax",xmax);
-        //     self.set('xmin',xmin);
-        //     self.set('totalBins',totalBins);
-        // },
-
-        calcFilterBins:function(filterSignals) {
-            var self = this;
-            var attrName = self.get("attrName");
-            // var dataDictArr = self.get("dataDictArr");
-            var numOfBins = self.get("numOfBins");
-            var t_xRange = self.get("xRange");
-            var xmin = t_xRange[0];
-            var xmax = t_xRange[1];
-            var binRange = (xmax - xmin)/numOfBins
-            var filterBins = [];
-            for(var i =0;i<numOfBins;i++) {
-                filterBins.push(0);
-            }
-            if(filterSignals) {
-                if(self.get("category")){
-                    var t_dict = self.get("dictionary").entries(), 
-                    t_name = self.get("attrName");
-                    _.filter(filterSignals, function(t_d){
-                        var tt_d = t_d[t_name];
-                        for(var i in t_dict){
-                            if(tt_d == t_dict[i].value.num){
-                                filterBins[i] ++;
-                                break;
-                            }
-                        }
-                    });
-                }else{
-                    for(var i=0;i<filterSignals.length;i++) {
-                        var binIndex = parseInt((filterSignals[i][attrName] - xmin)/binRange);
-                        if(binIndex >=numOfBins)
-                            binIndex = numOfBins - 1;
-                        filterBins[binIndex]  = filterBins[binIndex] + 1;
-                    }
+        init: function(v_opt){
+            var self = this, t_obj;
+            if(v_opt.category){
+                var v_bins = v_opt.bins, t_bins = _.values(v_bins);
+                var t_range = _.keys(v_bins), t_ind = t_range.indexOf("");
+                if(t_ind>=0){
+                    t_range[t_ind] = "NaN";
+                }
+                if(t_range.length == 1){
+                    t_range.push("");
+                    t_bins.push(0);
+                }
+                t_obj = {
+                    "attrName": v_opt.name,
+                    "totalBins": t_bins,
+                    "numOfBins": t_bins.length,
+                    "xRange": t_range,
+                    "yRange": [_.min(t_bins), _.max(t_bins)],
+                    "filterRangeName": v_opt.attr,
+                    "scale": v_opt.scale,
+                    "category": true,
+                }
+            }else{
+                var v_bins = v_opt.bins, t_bins = [], t_num = Config.get("barchart").bins;
+                for(var i = 0; i < t_num; i++){
+                    t_bins.push(0);
+                }
+                for(var i in v_bins){
+                    t_bins[parseInt(i)] = v_bins[i];
+                }
+                t_obj = {
+                    "attrName": v_opt.name,
+                    "totalBins": t_bins,
+                    "numOfBins": t_bins.length,
+                    "xRange": v_opt.range,
+                    "yRange": [_.min(t_bins), _.max(t_bins)],
+                    "filterRangeName": v_opt.attr,
+                    "scale": v_opt.scale,
+                    "category": false,
                 }
             }
-            else {
-                filterBins = null;
+            self.set(t_obj);
+        },
+
+        update: function(v_bins){
+            var self = this, t_bins = [];
+            for(var i = 0; i < self.get("numOfBins") - 1; i++){
+                t_bins.push(0);
             }
-            self.set("filterBins",filterBins);
-        }
+            if(self.get("category")){
+                var t_dict = self.get("dictionary");
+                for(var i in v_bins){
+                    var t_c = v_bins[i], t_i = i;
+                    if(t_i == ""){
+                        t_i = "NaN";
+                    }
+                    t_bins[t_dict.get(t_i).order] = t_c;
+                }
+            }else{
+                for(var i in v_bins){
+                    t_bins[parseInt(i)] = v_bins[i];
+                }
+            }
+            self.set("filterBins", t_bins);
+        },
+
+        settleCategories: function(){
+            var self = this;
+            if(self.get("category")){
+                var t_range = self.get("xRange"), t_ind = t_range.indexOf("NaN");
+                var t_bins = self.get("totalBins");
+                if(t_ind >=0){
+                    t_range.splice(t_ind,1);
+                    t_range.splice(0,0,"NaN");
+                    var t_bin = t_bins.splice(t_ind,1);
+                    t_bins.splice(0,0,t_bin[0]);
+                }
+                self.set("xRange", t_range);
+                self.set("totalBins", t_bins);
+                var t_dict = d3.map();
+                for(var i in t_range){
+                    if(t_range[i] == ""){
+                        continue;
+                    }
+                    t_dict.set(t_range[i], {order: i});
+                }
+                self.set("dictionary", t_dict);
+            }
+        },
+
+        clearFilter:function() {
+            var self = this;
+            self.set("filterBins", null);
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.destroy();
+        },
     });
 });

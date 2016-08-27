@@ -54,8 +54,8 @@ define([
                 else {
                     $("#loading").addClass("hidden");
                 }
-
             });
+            self.bindInteractions();
         },
 
         loaded: function() {
@@ -74,6 +74,17 @@ define([
 
         },
 
+        bindInteractions: function(){
+            var self = this;
+            $(".dataLoader").on("click", function(){
+                var t_id = $(this).attr("id");
+                Config.changeData(t_id);
+                $(".dataLoader").removeClass("active");
+                $(this).addClass("active");
+            });
+            var t_d = Config.get("currentData");
+            $(".dataLoader#"+t_d).addClass("active");
+        },
 
     });
 });

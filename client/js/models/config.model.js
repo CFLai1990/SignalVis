@@ -11,7 +11,7 @@ define([
 
     return window.Config = new (Backbone.Model.extend({
         defaults: {
-            "currentData": "950MHz",
+            "currentData": "signaldata1",
             "nameList": {
                 "id": {name: "id", type: "int", norm: null},
                 "freq":{name: "midfre", type: "float", norm: true},
@@ -20,6 +20,8 @@ define([
                 "time":{name: "firsttime", type: "time", norm: true},
                 "snr":{name: "signalnoise", type: "int", norm: true},
                 "carriernoise":{name: "carriernoise", type: "int", norm: true},
+                "dbm":{name: "scopedbm", type: "int", norm: true},
+                "timeDate": {name: null, type: "int", norm: false},
                 "count":{name: null, type: "int", norm: true},
                 "Lasttime":{name: null, type: null, norm: null},
                 "Modulationmode":{name: "mode", type: "category", norm: true},
@@ -27,36 +29,50 @@ define([
                 "CsTran":{name: "tran", type: "category", norm: true},
                 "mark":{name: "mark", type: "category", norm: true},
                 "SignalType":{name: "sigtype", type: "category", norm: true},
-                "isTDMA":{name: "tdma", type: "category", norm: true},
                 "location":{name: "location", type: "category", norm: true},
                 "demod":{name: "demod", type: "category", norm: true},
-                "demodrate":{name: null, type: "category", norm: true},
-                "inforate":{name: null, type: "category", norm: true},
+                // "demodrate":{name: "demodrate", type: "category", norm: true},
+                // "inforate":{name: "inforate", type: "category", norm: true},
+                "isDAOPU":{name: "daopu", type: "category", norm: true},
+                "isTDMA":{name: "tdma", type: "category", norm: true},
+                "codeType":{name: "codetype", type: "category", norm: true},
+                "frameLen":{name: "frameLen", type: "category", norm: true},
+                "isdiff":{name: "diff", type: "category", norm: true},
+                "transport":{name: "transport", type: "category", norm: true},
+                "poly":{name: "poly", type: "category", norm: true},
             },
             "data": {
                 "950MHz": {
                     "dataTable": "SignalDB",
                     "localPath": "data/950MHz.csv",
+                    "spectrum": "Spectrum",
                 },
                 "signal": {
                     "dataTable": "SignalDB0",
                     "localPath": "data/signal.csv",
+                    "spectrum": "Spectrum",
                 },
                 "signaldata1": {
                     "dataTable": "SignalDB1",
                     "localPath": "data/signaldata1.csv",
+                    "spectrum": "Spectrum",
                 },
                 "signaldata2": {
                     "dataTable": "SignalDB2",
                     "localPath": "data/signaldata2.csv",
+                    "spectrum": "Spectrum",
                 },
             },
             "barchart": {
                 "bins": 40,
+                "list": null,
             },
             "chineseAttrNames": {
+                "midfre": "中心频率",
+                "firsttime": "时间",
                 "bandwidth": "带宽",
                 "scope": "能量",
+                "scopedbm": "能量",
                 "carriernoise": "载噪比",
                 "signalnoise": "信噪比",
                 "count": "数目",
@@ -65,11 +81,17 @@ define([
                 "tran": "CsTran",
                 "mark": "mark",
                 "sigtype": "信号类型",
-                "tdma": "是否TDMA",
+                "tdma": "TDMA",
+                "diff": "isDiff",
+                "daopu": "倒谱",
+                "codetype": "CodeType",
                 "location": "地点",
                 "demod": "解调模式",
                 "demodrate": "解调速率",
                 "inforate": "inforate",
+                "transport": "传输协议",
+                "poly": "poly",
+                "frameLen": "帧长",
             },
             "attrs": {
                 "bandwidth": {"attr": "baud", "scale": "power", type: "float", text: "bandwidthRangeText", hd: true},
@@ -89,16 +111,25 @@ define([
                 "demod": {"attr": "demod", "scale": "power", type: "category", text: null, hd: true},
                 "demodrate": {"attr": "demodrate", "scale": "power", type: "category", text: null, hd: true},
                 "inforate": {"attr": "inforate", "scale": "power", type: "category", text: null, hd: true},
+                "scopedbm": {"attr": "dbm","scale": "linear", type: "int", text: "scopedbmRangeText", hd: true},
+                "daopu": {"attr": "isDAOPU","scale": "power", type: "category", text: null, hd: true},
+                "diff": {"attr": "isdiff","scale": "power", type: "category", text: null, hd: true},
+                "codetype": {"attr": "codeType","scale": "power", type: "category", text: null, hd: true},
+                "transport": {"attr": "transport","scale": "power", type: "category", text: null, hd: true},
+                "poly": {"attr": "poly","scale": "power", type: "category", text: null, hd: true},
+                "frameLen": {"attr": "frameLen","scale": "power", type: "category", text: null, hd: true},
             },
             "pixel": {
                 "attrs": [
-                    {"name": "midfre", "attr": "freq", "scale": "linear"},
                     {"name": "firsttime", "attr": "timeDate", "scale": "time"},
+                    {"name": "midfre", "attr": "freq", "scale": "linear"},
                 ],
-                "size": [120, 240],
+                "plansize": [240, 240],
+                "size": null,
             },
             "projection": {
-                "SampleRate": [1, 1, 1, 0.5, 0.3, 0.3, 0.3],
+                "SampleRate": [1, 1, 1, 0.5, 0.3, 0.2, 0.1, 0.1, 0.1],
+                "opacity": [0.9, 0.9, 0.6, 0.4, 0.3, 0.3, 0.3, 0.2, 0.2],
             },
             "dictionary": null,
         },
@@ -115,6 +146,25 @@ define([
             }else{
                 return self.get("data")[t_data];
             }
+        },
+
+        changeData: function(v_data){
+            var self = this;
+            var t_data = self.get("currentData");
+            if(t_data != v_data){
+                if(!self.get("data")[v_data]){
+                    console.log("No such data!");
+                    return;
+                }
+                self.set("currentData", v_data);
+                self.trigger("Config:changeData");
+            }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.set("dictionary", null);
+            self.get("barchart").list = null;
         },
     }))();
 });
