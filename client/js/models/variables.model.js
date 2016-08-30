@@ -50,12 +50,22 @@ define([
 
         getDimensions: function(v_dims){
             var self = this;
-            for(var i in v_dims){
-                var t_sign = false, t_i = v_dims[i];
-                if(t_i == "midfre" || t_i == "firsttime"){
-                    t_sign = true;
+            if(v_dims){                
+                for(var i in v_dims){
+                    var t_sign = false, t_i = v_dims[i];
+                    if(t_i == "midfre" || t_i == "firsttime"){
+                        t_sign = true;
+                    }
+                    self.get("dimensions")[t_i] = t_sign;
                 }
-                self.get("dimensions")[t_i] = t_sign;
+            }else{
+                var t_dims = self.get("dimensions"), t_result = [];
+                for(var i in t_dims){
+                    if(t_dims[i]){
+                        t_result.push(i);
+                    }
+                }
+                return t_result;
             }
         },
 

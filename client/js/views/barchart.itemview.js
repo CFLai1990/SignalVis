@@ -73,17 +73,19 @@ define([
 
                     var ymax = _.max(filterBins);
                     if(self.model.get("scale") == 'linear') {
-                        self.yAxisScale.domain([0.1,ymax]);
+                        self.yAxisScale.domain([0,ymax]);
 
-                        self.yScale.domain([0.1,ymax]);
-                        if(ymax > 10000){
-                            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
-                                .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
-                        }
-                        else {
-                            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
-                                .tickFormat(function(d) { return Math.round(d)});
-                        }
+                        self.yScale.domain([0,ymax]);
+                        // if(ymax > 10000){
+                        //     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
+                        //         .tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
+                        // }
+                        // else {
+                        //     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
+                        //         .tickFormat(function(d) { return Math.round(d)});
+                        // }
+                        self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
+                            .tickFormat(function(d) {return Math.round(d / 1e3) + "K";});
                     }
                     else if(self.model.get("scale") == 'power') {
                         var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
@@ -137,12 +139,12 @@ define([
                 self.d3el.select(".barTitle")
                      .text(self.theTitle);
                 if(self.model.get("scale") == 'linear') {
-                    self.yAxisScale.domain(t_yRange);
+                    self.yAxisScale.domain([0, t_yRange[1]]);
 
-                    self.yScale.domain([0.1,t_yRange[1]]);
+                    self.yScale.domain([0,t_yRange[1]]);
 
                     self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").ticks(3)
-                        .tickFormat(function(d) {return Math.round(d / 1e3) + "K";});;
+                        .tickFormat(function(d) {return Math.round(d / 1e3) + "K";});
                 }
                 else if(self.model.get("scale") == 'power') {
                     var superscript = "⁰¹²³⁴⁵⁶⁷⁸⁹",
@@ -449,14 +451,13 @@ define([
         },
 
         onClickBarTitle:function() {
-            if(this.model.get("mode") == "zoomout") {
-                if(Variables.get("filterSignals"))
-                    this.model.set("mode","zoomin")
-            }
-            else {
-                this.model.set("mode","zoomout")
-
-            }
+            // if(this.model.get("mode") == "zoomout") {
+            //     if(Variables.get("filterSignals"))
+            //         this.model.set("mode","zoomin")
+            // }
+            // else {
+            //     this.model.set("mode","zoomout")
+            // }
         }
 
     }, SVGBase));

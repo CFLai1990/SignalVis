@@ -37,6 +37,7 @@
                 "maxTime":null,
                 "minMidfre":null,
                 "maxMidfre":null,
+                "signalNum":null,
 
                 //select detail signals
                 "detailSignals":null,
@@ -46,29 +47,29 @@
                 //scatterplot
                 "scatterplot":null,
                 "highdimension":null,
+                "onlyProjection": false,
             },
 
         initialize: function(){
             var self = this;
             self.set("barchartCollection", new barchartCollection());
-            var queryFunc = function(){
-                    var t_df = $.Deferred();
-                    self.updateFilterArrWithoutInx(t_df);
-                    $.when(t_df).done(function(){
-                        self.updateDetailSignals();
-                    });
-            };
             self.listenTo(Config, "Config:changeData", self.changeData);
-            self.listenTo(Variables,"change:bandwidthFilterRange", queryFunc);
-            self.listenTo(Variables,"change:scopeFilterRange", queryFunc);
-            self.listenTo(Variables,"change:carriernoiseFilterRange", queryFunc);
-            self.listenTo(Variables, "changeFilterRange", queryFunc);
+            self.listenTo(Variables, "subspaceChange", self.changeSubspace);
+            self.listenTo(Variables,"change:bandwidthFilterRange", self.queryFunc);
+            self.listenTo(Variables,"change:scopeFilterRange", self.queryFunc);
+            self.listenTo(Variables,"change:carriernoiseFilterRange", self.queryFunc);
+            self.listenTo(Variables, "changeFilterRange", self.queryFunc);
             self.listenTo(Variables,"change:zoominFirsttimeFilterRange", function(model,zoominFirsttimeFilterRange){
                     self.updateDetailSignals();
             });
             self.listenTo(Variables,"change:zoominMidfreFilterRange", function(model,zoominMidfreFilterRange){
                     self.updateDetailSignals();
             });
+        },
+
+        queryFunc: function(){
+                var self = this, t_df = $.Deferred();
+                self.updateFilterArrWithoutInx(t_df);
         },
 
         changeData: function(){
@@ -103,92 +104,109 @@
         },
 
         readSignal: function(def) {
-            var self = this;
-            d3.csv(Config.getData("localPath"), function(data) {
-                var t_list = Config.get("nameList"), t_keys = _.keys(data[0]);
-                var t_signals = [], t_data = [], t_names = [], t_cate = {}, t_dicts = {};
-                for(var i =0;i<data.length;i++) {
-                    var signal = data[i];
-                    var tmp = {}, t_dt = [];
-                    for(var j in signal){
-                        var t_attr = t_list[j];
-                        if(!t_attr || !t_attr.name) continue;
-                        var t_d = signal[j], t_name = t_attr.name;
-                        switch(t_attr.type){
-                            case "float":
-                                t_d = parseFloat(t_d);
-                            break;
-                            case "int":
-                                t_d = parseInt(t_d);
-                            break;
-                            case "time":
-                                t_d = new Date(t_d).getTime();
-                            break;
-                            case "category":
-                                if(!t_cate[t_name]){
-                                    t_cate[t_name] = 1;
-                                    t_dicts[t_name] = d3.map();
-                                }
-                                var tt_dict = t_dicts[t_name],
-                                t_num = t_cate[t_name];
-                                if(t_d == "" || t_d == undefined){
-                                    t_d = "NaN";
-                                }
-                                if(!tt_dict.has(t_d)){
-                                    tt_dict.set(t_d, {num: t_num, count: 0});
-                                    t_cate[t_name]++;
-                                }
-                                var t_dc = tt_dict.get(t_d);
-                                t_d = t_dc.num;
-                                t_dc.count++;
-                            break;
-                        }
-                        tmp[t_attr.name] = t_d;
-                        if(t_attr.norm){
-                            t_dt.push(t_d);
+            var self = this, t_list = Config.get("barchart").list, t_attrs = Config.get("nameList");
+            if(!t_list){
+                Config.get("barchart").list = [];
+            }
+            self.queryFromDB("query", {
+                    condition: {"id": 1},
+                    return: {'_id':0},
+                }, function(v_d){
+                    for(var i in v_d[0]){
+                        if((v_d[0]['norm'+i]!=undefined) && i!="timeDate" && i!="freq" && i.indexOf("id")<0){
+                            if(!t_attrs[i]){
+                                console.log(i);
+                            }
+                            var t_name = t_attrs[i].name;
+                            if(t_name){
+                                Config.get("barchart").list.push(t_name);
+                            }
                         }
                     }
-                    t_data.push(t_dt);
-                    t_signals.push(tmp);
-                }
-                Config.set("dictionary", t_dicts);
-                t_data = MDS.normalizeData(t_data);
-                for(var i = 0; i < t_data.length; i++){
-                    var t_j = 0, tt_data = t_data[i];
-                    var signal = data[i];
-                    for(var j in signal){
-                        var t_attr = t_list[j];
-                        if(!t_attr || !t_attr.name) continue;
-                        if(t_attr.norm){
-                            t_signals[i]["norm" + t_attr.name] = tt_data[t_j];
-                            t_j++;
-                        }
-                    }
-                }
-                self.set("signals", t_signals);
-                def.resolve();
-            });
+            }, def);
+            // d3.csv(Config.getData("localPath"), function(data) {
+            //     var t_list = Config.get("nameList"), t_keys = _.keys(data[0]);
+            //     var t_signals = [], t_data = [], t_names = [], t_cate = {}, t_dicts = {};
+            //     for(var i =0;i<data.length;i++) {
+            //         var signal = data[i];
+            //         var tmp = {}, t_dt = [];
+            //         for(var j in signal){
+            //             var t_attr = t_list[j];
+            //             if(!t_attr || !t_attr.name) continue;
+            //             var t_d = signal[j], t_name = t_attr.name;
+            //             switch(t_attr.type){
+            //                 case "float":
+            //                     t_d = parseFloat(t_d);
+            //                 break;
+            //                 case "int":
+            //                     t_d = parseInt(t_d);
+            //                 break;
+            //                 case "time":
+            //                     t_d = new Date(t_d).getTime();
+            //                 break;
+            //                 case "category":
+            //                     if(!t_cate[t_name]){
+            //                         t_cate[t_name] = 1;
+            //                         t_dicts[t_name] = d3.map();
+            //                     }
+            //                     var tt_dict = t_dicts[t_name],
+            //                     t_num = t_cate[t_name];
+            //                     if(t_d == "" || t_d == undefined){
+            //                         t_d = "NaN";
+            //                     }
+            //                     if(!tt_dict.has(t_d)){
+            //                         tt_dict.set(t_d, {num: t_num, count: 0});
+            //                         t_cate[t_name]++;
+            //                     }
+            //                     var t_dc = tt_dict.get(t_d);
+            //                     t_d = t_dc.num;
+            //                     t_dc.count++;
+            //                 break;
+            //             }
+            //             tmp[t_attr.name] = t_d;
+            //             if(t_attr.norm){
+            //                 t_dt.push(t_d);
+            //             }
+            //         }
+            //         t_data.push(t_dt);
+            //         t_signals.push(tmp);
+            //     }
+            //     Config.set("dictionary", t_dicts);
+            //     t_data = MDS.normalizeData(t_data);
+            //     for(var i = 0; i < t_data.length; i++){
+            //         var t_j = 0, tt_data = t_data[i];
+            //         var signal = data[i];
+            //         for(var j in signal){
+            //             var t_attr = t_list[j];
+            //             if(!t_attr || !t_attr.name) continue;
+            //             if(t_attr.norm){
+            //                 t_signals[i]["norm" + t_attr.name] = tt_data[t_j];
+            //                 t_j++;
+            //             }
+            //         }
+            //     }
+            //     self.set("signals", t_signals);
+            //     def.resolve();
+            // });
         },
 
         readPreCompute: function(def) {
-            var self = this, t_signals = self.get("signals"), t_keys = _.keys(t_signals[0]).reverse();
+            var self = this;
             var t_sort = function(v_arr, v_key){ return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});};
-            var t_time = d3.extent(_.map(t_signals, "firsttime")),
-            t_freq = d3.extent(_.map(t_signals, "midfre"));
             var t_tds = [], t_attrs = Config.get("attrs"), t_pxl = Config.get("pixel");
-            for(var i in t_keys){
-                var t_i = t_keys[i];
-                if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
-                    continue;
-                }
-                var  t_a = t_attrs[t_i];
-                if(!t_a){
-                    continue;
-                }
-                // var tt_tds = $.Deferred();
-                // t_tds.push(tt_tds.promise());
-                self.setBarChart(t_i, t_a.attr, t_a.type, t_a.scale, null);//tt_tds);
-            }
+            // for(var i in t_keys){
+            //     var t_i = t_keys[i];
+            //     if(t_i.indexOf("norm") >=0 || t_i == "id" || t_i == "midfre" || t_i == "firsttime" || t_i == "Lasttime"){
+            //         continue;
+            //     }
+            //     var  t_a = t_attrs[t_i];
+            //     if(!t_a){
+            //         continue;
+            //     }
+            //     // var tt_tds = $.Deferred();
+            //     // t_tds.push(tt_tds.promise());
+            //     self.setBarChart(t_i, t_a.attr, t_a.type, t_a.scale, null);//tt_tds);
+            // }
             var tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
             self.getBarcharts({}, tt_tds, true);
@@ -317,17 +335,27 @@
             var carriernoiseRange = [];
             var t_bandwidth = self.get("barcharts")["bandwidth"];
             bandwidthRange = t_bandwidth?t_bandwidth.get("xRange"):null;
-            var t_scope = self.get("barcharts")["scope"];
-            scopeRange = t_scope?t_scope.get("xRange"):null;
+            var t_scope = self.get("barcharts")["scope"], t_dbmscope = self.get("barcharts")["scopedbm"];
+            if(t_scope){
+                scopeRange = t_scope.get("xRange");
+            }
+            if(t_dbmscope){
+                scopeRange = t_dbmscope.get("xRange");
+            }
             var t_carrier = self.get("barcharts")["carriernoise"];
-            carriernoiseRange = t_carrier?t_carrier.get("xRange"):null;
-
-            var detailSignals = new DetailSignal.Model({
-                "bandwidth":bandwidthRange,
-                "scope":scopeRange,
-                "carriernoise":carriernoiseRange,
-            });
-            this.set("detailSignals",detailSignals);
+            if(t_carrier){
+                carriernoiseRange = t_carrier.get("xRange");
+            }
+            if(bandwidthRange.length == 0 || scopeRange.length == 0 || carriernoiseRange.length == 0){
+                this.set("detailSignals", null);
+            }else{
+                var detailSignals = new DetailSignal.Model({
+                    "bandwidth":bandwidthRange,
+                    "scope":scopeRange,
+                    "carriernoise":carriernoiseRange,
+                });
+                this.set("detailSignals",detailSignals);
+            }
         },
 
         addDetailSignal:function(midfreInx,timeInx) {
@@ -382,10 +410,10 @@
             if(filters.length == 0) {
                 Variables.set("filterSignals", null);
                 Variables.trigger("clearFilter");
+                self.trigger("updateFilterCount", self.get("signalNum"));
             }
             else {
                 var filterSignals = [];
-                var signals = this.get("signals");
                 var t_condition = {};
                 for(var i in filters){
                     var t_range = filters[i].range,
@@ -407,8 +435,11 @@
         },
 
         updateDetailSignals: function() {
-            var self = this;
-            console.time(2)
+            var self = this, t_detail = self.get("detailSignals");
+            if(!t_detail){
+                return;
+            }
+            console.time(2);
             var filterSignals = Variables.get("filterSignals");
             var zoominFirsttimeFilterRange = Variables.get("zoominFirsttimeFilterRange");
             var zoominMidfreFilterRange = Variables.get("zoominMidfreFilterRange");
@@ -421,7 +452,21 @@
                         detailSignals.push(signal);
                     }
                 }
-                Variables.set("detailSignals",detailSignals);
+                var t_namelist = {
+                    "scope": "scope",
+                    "scopedbm": "scope",
+                    "bandwidth": "bandwidth",
+                    "carriernoise": "carriernoise",
+                    "signalnoise": "carriernoise",
+                }
+                var t_result = _.map(detailSignals, function(v_d){
+                    var t_d = {};
+                    for(var i in v_d){
+                        t_d[t_namelist[i]] = v_d[i];
+                    }
+                    return t_d;
+                })
+                Variables.set("detailSignals",t_result);
             }
             else {
                 Variables.set("detailSignals",null);
@@ -429,26 +474,52 @@
             console.timeEnd(2);
         },
 
-        querySpectrum: function(v_frame, v_callback){
-            var self = this, v_df = $.Deferred();
+        querySpectrum: function(v_opts, v_callback){
+            var v_frame = v_opts.frame_num, v_time = v_opts.time, v_scope = v_opts.scope;
+            var self = this, v_df = $.Deferred(), v_return = {};
             var t_collection = Config.getData("spectrum");
             console.time(3);
-            self.queryFromDB("query", {
-                    condition: {"frameNum": v_frame},
-                    return: {'scope': 1, 'frequency': 1, '_id': 0},
+            if(t_collection){
+                v_return[v_scope] = 1;
+                self.queryFromDB("query", {
+                    condition: {"timeDate": {
+                            '$gte': v_time[0] + 8 * 3600 * 1000,
+                            '$lte': v_time[1] + 8 * 3600 * 1000,
+                        }
+                    },
+                    return: _.extend(v_return, {'_id': 0, 'freq': 1}),
                 }, function(v_d){
-                    console.timeEnd(3);
-                    v_callback(v_d);
-                    //handle spectrum data
-            }, v_df, {
-                collection: t_collection,
-            });
+                    var t_result = [], t_namelist = {freq: "midfre"};
+                    t_namelist[v_scope] = "scope";
+                    for(var i in v_d){
+                        var t_r = {}, vv_d = v_d[i];
+                        for(var j in vv_d){
+                            t_r[t_namelist[j]] = vv_d[j];
+                        }
+                        t_result.push(t_r);
+                    }
+                    Variables.set("filterData", t_result);
+                }, v_df);
+                $.when(v_df).done(function(){
+                    var v_df1 = $.Deferred();
+                    self.queryFromDB("query", {
+                            condition: {"frameNum": v_frame},
+                            return: {'scope': 1, 'frequency': 1, '_id': 0},
+                        }, function(v_d){
+                            console.timeEnd(3);
+                            v_callback(v_d);
+                            //handle spectrum data
+                    }, v_df1, {
+                        collection: t_collection,
+                    });
+                });       
+            }
         },
 
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.getData("dataTable");
             $.ajax({
-                url: "SignalVis/query?"+JSON.stringify({
+                url: "/query?"+JSON.stringify({
                     table: t_table,
                     condition: v_condition,
                     command: v_command,
@@ -467,30 +538,63 @@
         },
 
         getBarcharts: function(v_condition, v_df, v_init){
-            var self = this, filterSignals;
-            var t_return = self.getBCAttributes(),
-                t_condition = {
+            var self = this, filterSignals = [], t_list = Config.get("nameList");
+            var t_onlyPr = self.get("onlyProjection");
+            var t_return, t_dims;
+            if(t_onlyPr){
+                t_return = {'_id': 0};
+            }else{
+                t_return = self.getBCAttributes();
+            }
+            t_dims = self.getDimensions();
+            var t_condition = {
                     condition: v_condition,
                     return: t_return.attrs,
+                    dimensions: t_dims,
+                    onlyProjection: t_onlyPr,
+                    ratio: Config.get("projection")["SampleRate"],
                 };
             self.queryFromDB("queryBC", t_condition, function(v_data){
                 if(!v_init){
-                    var t_result = d3.set(v_data.ids), signals = Datacenter.get("signals");
-                    filterSignals = _.filter(signals, function(t_s){
-                        return t_result.has(t_s["id"]);
-                    });
-                    Config.set("test", filterSignals);
+                    var t_data = v_data.data;
+                    var t_names = {};
+                    for(var i in t_data[0]){
+                        var t_l = t_list[i];
+                        if(i == "timeDate"){
+                            t_names[i] = "firsttime";
+                        }
+                        if(t_l){
+                            t_names[i] = t_l.name;
+                        }
+                    }
+                    for(var i in t_data){
+                        var t_d = {};
+                        for(var j in t_data[i]){
+                            var t_name = t_names[j], tt_d = t_data[i][j];
+                            if(t_name == "firsttime"){
+                                tt_d -= 8 * 3600 * 1000;
+                            }
+                            t_d[t_name] = tt_d;
+                        }
+                        filterSignals.push(t_d);
+                    }
                 }
                 if(v_data.count > 0){
                     self.updateBarcharts(v_data.barcharts, v_data.range);
+                    self.updateProjection(v_data.projection);
                 }else{
                     Variables.trigger("clearFilter");
                 }
                 if(!v_init){
                     Variables.set("filterSignals",filterSignals);
                     self.trigger("updateFilterCount", v_data.count);
-                }               
+                }else{
+                    Datacenter.set("signalNum",v_data.count);
+                }
             }, v_df, t_return.parameters);
+            if(t_onlyPr){
+                self.set("onlyProjection", false);
+            }
         },
 
         getBCAttributes: function(){
@@ -502,7 +606,6 @@
                 var t_cate = (t_attrs[t_name].type == "category"), t_attr = t_attrs[t_name].attr;
                 if(!t_cate){
                     var t_bins = Config.get("barchart").bins;
-                    console.log(t_name);
                     t_pm[t_attr] = {range: t_bc?t_bc[t_name].get("xRange"):null, count: t_bins};
                 }
                 t_return[t_attr] = 1;
@@ -510,6 +613,15 @@
             t_r.attrs = t_return;
             t_r.parameters = t_pm;
             return t_r;
+        },
+
+        getDimensions: function(){
+            var t_dims = Variables.getDimensions(), t_attrs = Config.get("attrs");
+            var t_result = [];
+            for(var i in t_dims){
+                t_result.push("norm" + t_attrs[t_dims[i]].attr);
+            }
+            return t_result;
         },
 
         updateBarcharts: function(v_bc, v_range){
@@ -545,6 +657,16 @@
             }
         },
 
+        updateProjection: function(v_layout){
+            Variables.trigger("updateProjection", v_layout);
+        },
+
+        changeSubspace: function(){
+            var self = this;
+            self.set("onlyProjection", true);
+            self.queryFunc();
+        },
+
         clearAll: function(){
             var self = this;
             self.set({
@@ -558,6 +680,8 @@
                 "barcharts": null,
                 "scatterplot":null,
                 "highdimension":null,
+                "signalNum":null,
+                "onlyProjection": false,
             });
             self.get("barchartCollection").reset();
         },

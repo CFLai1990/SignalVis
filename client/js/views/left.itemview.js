@@ -33,14 +33,18 @@ define([
         
         specDiagram: function(){
             var self = this;
-            var detailSignals = Datacenter.get('signals');
             var specResult = Variables.get("specResult");
             var filterData = Variables.get("filterData");
             d3.selectAll('.line').remove();
             d3.selectAll('.signalPoint').remove();
             //console.log(filterData);
+            var t_bcs = Datacenter.get("barcharts");
+            var t_scope = t_bcs["scope"], t_scopedbm = t_bcs["scopedbm"];
+            if(!t_scope && !t_scopedbm){
+              return;
+            }
             var scope_scale = d3.scale.linear()
-    		      .range(d3.extent(detailSignals, function(d) { return d.scopedbm; }))
+    		      .range(t_scope?(t_scope.get("xRange")):(t_scopedbm.get("xRange")))
     		      .domain([426,2245]);
             
             specResult.forEach(function(d){
@@ -74,7 +78,7 @@ define([
     		      .append("circle")
     		      .attr("class", "signalPoint") 
     		      .attr("cx", function(d){return self.x_line(d.midfre);})
-    		      .attr("cy", function(d){return self.y_line(d.scopedbm);})
+    		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer");
@@ -143,7 +147,7 @@ define([
 
              self.scattersizeScale = d3.scale.linear()
                             .domain([minBandwidth,maxBandwidth])
-                            .range([1,5]);
+                            .range([1,2.5]);
 
              self.scatter = self.mainRegin.append("g").attr("class","scatter");
 
@@ -241,7 +245,6 @@ define([
             self.chartHeight = t_height * 0.57;
             self.have_zoomin = 0;
 //useful variables
-            var detailSignals = Datacenter.get('signals');
             var aggCount_old = Datacenter.get("aggCount");
             var aggCount = numeric.transpose(aggCount_old);
 
@@ -250,8 +253,6 @@ define([
             var t_self = function(d){return d;}
             var t_transform = (maxCount - minCount)>100?Math.log:t_self;
 
-            var minDate  = new Date(Datacenter.get("minTime"));
-            var maxDate  = new Date(Datacenter.get("maxTime"));
             var minMidfre = Datacenter.get("minMidfre");
             var maxMidfre = Datacenter.get("maxMidfre");
 
@@ -259,8 +260,7 @@ define([
                 w = self.chartWidth/aggCount[0].length;
             var brush_height = self.chartHeight;
             
-            //console.log(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
-            var time_range = d3.extent(detailSignals, function(d) { return d.firsttime; });
+            var time_range = Datacenter.get("timeRange");
             var start_time = time_range[0];
 //useful variables END
 //scales and brushes
@@ -273,7 +273,7 @@ define([
                             .domain([aggCount.length,0]);
 
             self.yAxisScale = d3.time.scale()
-                            .domain([minDate,maxDate])
+                            .domain(time_range)
                             .range([self.chartHeight, 0]);
 
             self.xAxisScale = d3.scale.linear()
@@ -443,8 +443,12 @@ define([
                     .attr("class","svg_line");
                     
 			//	console.log(d3.extent(detailSignals, function(d) { return d.midfre; }));
-                self.x_line.domain(d3.extent(detailSignals, function(d) { return d.midfre; }));
-                self.y_line.domain(d3.extent(detailSignals, function(d) { return d.scopedbm; }));
+                var t_bcs = Datacenter.get("barcharts");
+                var t_scope = t_bcs["scope"]?t_bcs["scope"]:t_bcs["scopedbm"];
+                self.x_line.domain(Datacenter.get("midfreRange"));
+                if(t_scope){
+                  self.y_line.domain(t_scope.get("xRange"));
+                }
      
                  self.svg_line.append("g")
                       .attr("class", "x axis")
@@ -491,19 +495,35 @@ define([
                   .attr("class","line_title")
                   .text("时间：" + y_time);
                   
-                var filterData = detailSignals.filter(function(d){
-                  var timeStamp = new Date(d.firsttime).toTimeString().substr(0,8);
-                  if(timeStamp == y_time)
-                    return true;
-                  else
-                    return false;
-                });
-                  
-                Datacenter.querySpectrum(frame_num, function(v_d){
-	                Variables.set("specResult", v_d);
-	                Variables.set("filterData",filterData);
-	                self.trigger("test:everything_done");
-	            })
+                // var filterData = detailSignals.filter(function(d){
+                //   var timeStamp = new Date(d.firsttime).toTimeString().substr(0,8);
+                //   if(timeStamp == y_time)
+                //     return true;
+                //   else
+                //     return false;
+                // });
+                var t_scope = null, t_list = Config.get("barchart").list;
+                if(t_list.indexOf("scope")>=0){
+                  t_scope = Config.get("attrs")["scope"].attr;
+                }
+                if(t_list.indexOf("scopedbm")>=0){
+                  t_scope = Config.get("attrs")["scopedbm"].attr;
+                }
+                
+                var t_binTime = Datacenter.get("timeRange");
+                t_binTime = (t_binTime[1] - t_binTime[0])/(Config.get("pixel").plansize[1]);
+                var tt_time = new Date(self.yAxisScale.invert(d3.mouse(this)[1])).getTime();
+                if(t_scope){
+                  Datacenter.querySpectrum({
+                      frame_num: frame_num,
+                      time: [Math.round(tt_time - t_binTime * 0.6), Math.round(tt_time + t_binTime * 0.6)],
+                      scope: t_scope,
+                    },function(v_d){
+  	                Variables.set("specResult", v_d);
+  	                // Variables.set("filterData",filterData);
+  	                self.trigger("test:everything_done");
+  	            });
+              }
             }
 
             function mousemove() {
@@ -654,7 +674,7 @@ define([
                     d3.select(".brush2 .extent").attr("height", 0);
 
                     self.xAxisScale.domain([minMidfre,maxMidfre]);
-                    self.yAxisScale.domain([minDate,maxDate]);
+                    self.yAxisScale.domain(time_range);
 
                     reset_xaxis();
                     reset_yaxis();

@@ -27,19 +27,22 @@ define([
                 if(detailSignals) {
                     var zoominFirsttimeFilterRange = Variables.get("zoominFirsttimeFilterRange");
                     var zoominMidfreFilterRange = Variables.get("zoominMidfreFilterRange");
-                    console.log(zoominMidfreFilterRange);
                     self.model.set("signals",detailSignals);
                     self.model.set("minTime",zoominFirsttimeFilterRange[0]);
                     self.model.set("maxTime",zoominFirsttimeFilterRange[1]);
                     self.model.set("minMidfre",zoominMidfreFilterRange[0]);
                     self.model.set("maxMidfre",zoominMidfreFilterRange[1]);
                 }
-                self.onShow();
+                self.renderSignals();
             });
         },
 
         onShow: function()
         {
+            var self = this;
+        },
+
+        renderSignals: function(){
             var self = this;
             var signals = self.model.get('signals');
             if(signals) {
@@ -265,11 +268,9 @@ define([
                     //             return bezierLoop(tmp);
                     //         })
                     //         .attr('class','carriernoiseFilled');
-
-
                 }
             }
-        }
+        },
 
     }, SVGBase));
 });

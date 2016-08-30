@@ -17,7 +17,7 @@ define([
                 "freq":{name: "midfre", type: "float", norm: true},
                 "baud":{name: "bandwidth", type: "float", norm: true},
                 "scope":{name: "scope", type: "int", norm: true},
-                "time":{name: "firsttime", type: "time", norm: true},
+                "timeDate":{name: "firsttime", type: "time", norm: true},
                 "snr":{name: "signalnoise", type: "int", norm: true},
                 "carriernoise":{name: "carriernoise", type: "int", norm: true},
                 "count":{name: null, type: "int", norm: true},
@@ -43,7 +43,7 @@ define([
                 "950MHz": {
                     "dataTable": "SignalDB",
                     "localPath": "data/950MHz.csv",
-                    "spectrum": "Spectrum",
+                    "spectrum": null,
                 },
                 "signal": {
                     "dataTable": "SignalDB0",
@@ -53,16 +53,16 @@ define([
                 "signaldata1": {
                     "dataTable": "SignalDB1",
                     "localPath": "data/signaldata1.csv",
-                    "spectrum": "Spectrum",
+                    "spectrum": null,
                 },
                 "signaldata2": {
                     "dataTable": "SignalDB2",
                     "localPath": "data/signaldata2.csv",
-                    "spectrum": "Spectrum",
+                    "spectrum": null,
                 },
             },
             "barchart": {
-                "bins": 40,
+                "bins": 36,
                 "list": null,
             },
             "chineseAttrNames": {
@@ -93,9 +93,9 @@ define([
             },
             "attrs": {
                 "bandwidth": {"attr": "baud", "scale": "power", type: "float", text: "bandwidthRangeText", hd: true},
-                "scope": {"attr": "scope", "scale": "linear", type: "int", text: "scopeRangeText", hd: true},
-                "carriernoise": {"attr": "carriernoise", "scale": "linear", type: "int", text: "carriernoiseRangeText", hd: true},
-                "signalnoise": {"attr": "snr", "scale": "linear", type: "int", text: "signalnoiseRangeText", hd: true},
+                "scope": {"attr": "scope", "scale": "power", type: "int", text: "scopeRangeText", hd: true},
+                "carriernoise": {"attr": "carriernoise", "scale": "power", type: "int", text: "carriernoiseRangeText", hd: true},
+                "signalnoise": {"attr": "snr", "scale": "power", type: "int", text: "signalnoiseRangeText", hd: true},
                 "midfre": {"attr": "freq", "scale": "linear", type: "float", text: "midfreRangeText", hd: true},
                 "firsttime": {"attr": "timeDate", "scale": "time", type: "time", text: "firsttimeRangeText", hd: true},
                 "count": {"attr": "count", "scale": "linear", type: "int", text: null, hd: true},
@@ -109,7 +109,7 @@ define([
                 "demod": {"attr": "demod", "scale": "power", type: "category", text: null, hd: true},
                 "demodrate": {"attr": "demodrate", "scale": "power", type: "category", text: null, hd: true},
                 "inforate": {"attr": "inforate", "scale": "power", type: "category", text: null, hd: true},
-                "scopedbm": {"attr": "dbm","scale": "linear", type: "int", text: "scopedbmRangeText", hd: true},
+                "scopedbm": {"attr": "dbm","scale": "power", type: "int", text: "scopedbmRangeText", hd: true},
                 "daopu": {"attr": "isDAOPU","scale": "power", type: "category", text: null, hd: true},
                 "diff": {"attr": "isdiff","scale": "power", type: "category", text: null, hd: true},
                 "codetype": {"attr": "codeType","scale": "power", type: "category", text: null, hd: true},
@@ -126,7 +126,7 @@ define([
                 "size": null,
             },
             "projection": {
-                "SampleRate": [1, 1, 1, 0.5, 0.3, 0.2, 0.1, 0.1, 0.1],
+                "SampleRate": [1, 1, 0.9, 0.6, 0.3, 0.1, 0.05, 0.01, 0.01],
                 "opacity": [0.9, 0.9, 0.6, 0.4, 0.3, 0.3, 0.3, 0.2, 0.2],
             },
             "dictionary": null,

@@ -74,7 +74,6 @@ function initialize(root, db, views, logger){
 
 	function handleQuery(request, response){
 		logger.log("    Handler: Query!");
-		console.log(request.url);
 		var t_conditions = JSON.parse(decodeURI(request.url.replace("/query?", "")));
 		var responseFunc = function(v_result){
 			if(!v_result){
@@ -86,16 +85,18 @@ function initialize(root, db, views, logger){
 				response.status(200).jsonp(v_result);
 			}
 		};
+		// console.log(t_conditions.command);
 		switch(t_conditions.command){
 			case "query":
+				var t_table = t_conditions.table;
 				if(t_conditions.extra){
-					db.query(t_conditions.table, t_conditions.condition, responseFunc, t_conditions.extra);
-				}else{
-					db.query(t_conditions.table, t_conditions.condition, responseFunc);
+					t_table = t_conditions.extra.collection;
 				}
+				db.query(t_table, t_conditions.condition, responseFunc);
 			break;
 			case "queryBC":
-				db.query(t_conditions.table, t_conditions.condition, views.queryBC(responseFunc, t_conditions.extra));
+				// db.query(t_conditions.table, t_conditions.condition, views.queryBC(responseFunc, t_conditions.extra));
+				views.queryBC(db.query, db.aggregate, t_conditions, responseFunc);
 			break;
 			case "aggregate":
 				db.aggregate(t_conditions.table, t_conditions.condition, responseFunc);

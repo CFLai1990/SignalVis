@@ -36,17 +36,19 @@ define([
         initialize: function(options){
             var self = this, t_d = options.dimensions;
             Variables.getDimensions(options.dimensions);
-            self.listenTo(Variables, "subspaceChange", self.redraw);
-            self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
-                self.set("filterSignals",filterSignals);
-                if(filterSignals && this.get("filterSignals").length > 5){
-                    self.updateFilterSignalsArr();
-                    self.dimRecution();
-                    self.updateRange();
-                }
-                self.set("redraw",!self.get("redraw"));
-            });
+            // self.listenTo(Variables, "subspaceChange", self.redraw);
+            // self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
+            //     self.set("filterSignals",filterSignals);
+            //     if(filterSignals && this.get("filterSignals").length > 5){
+            //         self.updateFilterSignalsArr();
+            //         self.dimRecution();
+            //         self.updateRange();
+            //     }
+            //     self.set("redraw",!self.get("redraw"));
+            // });
+            self.listenTo(Variables, "clearFilter", self.clearFilter);
             self.listenTo(Variables, "clearAll", self.clearAll);
+            self.listenTo(Variables, "updateProjection", self.updateProjection);
         },
 
         redraw: function(){
@@ -57,6 +59,23 @@ define([
             self.set("redraw",!self.get("redraw"));
         },
 
+        updateProjection: function(v_layout){
+            var self = this;
+            self.set("reductionSignals", v_layout);
+            if(v_layout){
+                self.updateRange();
+                self.set("redraw",!self.get("redraw"));
+            }else{
+                self.clearFilter();
+            }
+        },
+
+        clearFilter: function(){
+            var self = this;
+            self.set("reductionSignals", null);
+            self.trigger("clearAll");
+        },
+
         updateFilterSignalsArr: function() {
             var self = this, v_dims = Variables.get("dimensions");
             var filterSignals = self.get("filterSignals"), t_arr = [];
@@ -64,7 +83,6 @@ define([
                 console.time("updateFilterSignalsArr");
                 for(var i in v_dims){
                     if(v_dims[i]){
-                        console.log(i);
                         var tt_arr = _.map(filterSignals, "norm" + i);
                         t_arr.push(tt_arr);
                     }

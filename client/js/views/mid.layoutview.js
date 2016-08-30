@@ -35,9 +35,6 @@ define([
             },
             initialize: function() {
                 var self = this;
-                self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
-                        self.onChangeFilterSignals(filterSignals);
-                });
                 self.listenTo(Variables, "changeFilterRange",  function(model){
                         self.updateMidTexts();
                 });
@@ -83,7 +80,7 @@ define([
                 }
             },
             onShow:function() {
-                    this.$el.find("#signalNum").text(Datacenter.get("signals").length);
+                    this.$el.find("#signalNum").text(Datacenter.get("signalNum"));
                     this.updateMidTexts();
                     $("#stat-view").perfectScrollbar({wheelSpeed: 0.1});
                     this.showChildView("sizeLeg", new OverviewLeg());
@@ -218,11 +215,6 @@ define([
                 }
             },
 
-            onChangeFilterSignals:function(filterSignals) {
-                if(!filterSignals){
-                    this.$el.find("#signalNum").text(Datacenter.get("signals").length);
-                }
-            },
             onMouOverBtn:function(evt) {
                 // console.log(evt);
                 $(evt.target).addClass("hover");

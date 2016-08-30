@@ -25,7 +25,7 @@ define([
             self.listenTo(self.model,"change:redraw", function(model, yName){
                 self.onShow();
             });
-
+            self.listenTo(self.model, "clearAll", self.clearAll);
         },
 
         onShow: function()
@@ -45,19 +45,16 @@ define([
             self.mainRegin = self.d3el.append("g").attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
                                                 .attr("class","mainReginSvg");
             self.d3el.selectAll('.nodes').remove();
-            var filterSignals = Variables.get("filterSignals");
             var reductionSignals = self.model.get('reductionSignals');
-            var t_ratio = Config.get("projection")["SampleRate"],
-                t_opcs = Config.get("projection")["opacity"],
+            var t_opcs = Config.get("projection")["opacity"],
                 t_samples;
-            if(filterSignals && filterSignals.length > 5 && reductionSignals) {
-                var t_size = Math.round(Math.log10(reductionSignals.length)), t_opc;
-                t_opc = t_opcs[t_size];
-                t_samples = _.sample(reductionSignals, Math.round(reductionSignals.length * t_ratio[t_size]));
-
+            if(reductionSignals) {
+                var t_size = Math.round(Math.log10(reductionSignals.length));
+                    console.log(reductionSignals.length);
+                var t_opc = t_opcs[t_size];
                 var nodeGroup = self.mainRegin.append("g").attr("class","nodes");
 
-                var nodeEnter = nodeGroup.selectAll(".node").data(t_samples).enter()
+                var nodeEnter = nodeGroup.selectAll(".node").data(reductionSignals).enter()
                                 .append("g").attr("class","node");
 
                  nodeEnter.append("circle")
@@ -71,7 +68,13 @@ define([
                                     })
                                     .attr("opacity", t_opc);
             }
-        }
+        },
+
+        clearAll: function(){
+            var self = this;
+            self.d3el.select(".mainReginSvg").remove();
+            self.d3el.selectAll('.nodes').remove();
+        },
 
     }, SVGBase));
 });

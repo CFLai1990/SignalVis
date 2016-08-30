@@ -1,4 +1,18 @@
-var _ = require("underscore"), numeric = require("numeric");
+var _ = require("underscore"), numeric = require("numeric"), Q = require("q");
+var MDS = require("../../node_modules/mds.js");
+var t_sort = function(v_array, v_key){
+    return _.sortBy(v_array, v_key);
+}
+
+// $.whenWithProgress = function(arrayOfPromises, progressCallback) {
+//    var cntr = 0;
+//    for (var i = 0; i < arrayOfPromises.length; i++) {
+//        arrayOfPromises[i].done(function() {
+//            progressCallback();
+//        });
+//    }
+//    return jQuery.when.apply(jQuery, arrayOfPromises);
+// }
 
 function initialize(v_db, v_logger){
 	logger = v_logger;
@@ -6,9 +20,6 @@ function initialize(v_db, v_logger){
 }
 
 function barchart(v_callback, v_parameters){
-	var t_sort = function(v_arr, v_key){
-		return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});
-	};
 	return function(v_data){
 		var t_key = v_parameters.key, t_bins = v_parameters.bins;
 		var t_data = t_sort(v_data, t_key);
@@ -33,13 +44,10 @@ function barchart(v_callback, v_parameters){
         	"yRange": [0, _.max(t_binCount)],
         };
         v_callback(t_result);
-	};
+    };
 }
 
 function pixelmap(v_callback, v_parameters){
-    var t_sort = function(v_arr, v_key){
-        return _.sortBy(v_arr, function(tt_d){return tt_d[v_key];});
-    };
     return function(v_data){
         var t_key = v_parameters.key, t_size = v_parameters.size;
         var t_keySize = v_data.length;
@@ -86,48 +94,183 @@ function pixelmap(v_callback, v_parameters){
     };
 }
 
-function queryBC(v_callback, v_parameters){
-    return function(v_data){
-        var t_keys = _.keys(v_data[0]), t_barcharts = {}, t_ranges = {}, t_init = false;
-        for(var i in t_keys){
-            var tk = t_keys[i];
-            if(tk == "id"){
+function queryBC(v_query, v_aggr, v_allCondition, v_callback){
+    var v_sheet = v_allCondition.table, v_conditions = v_allCondition.condition,
+    v_dimensions = v_conditions.dimensions, v_parameters = v_allCondition.extra;
+    var t0_length = 0, t_ratio = v_conditions.ratio;
+    var t_attrs = v_conditions.return, t_dfs = [], t_barcharts = {}, t_ranges = {}, t_init = false, t_layout = null;
+    var t_aggr = function(v_condition){
+        var t_df = Q.defer();
+        v_aggr(v_sheet, v_condition, function(v_data){
+            t_df.resolve(v_data);
+        });
+        return t_df.promise;
+    };
+    if(!v_conditions.onlyProjection){
+        for(var t_attr in t_attrs){
+            if(t_attr == "id" || t_attr == "_id"){
                 continue;
             }
-            t_ranges[tk] = null;
-            if(v_parameters[tk]){
-                var t_num = v_parameters[tk].count, t_range = v_parameters[tk].range;
-                if(!t_range){
-                    t_range = [_.min(v_data, tk)[tk], _.max(v_data, tk)[tk]];
-                    t_ranges[tk] = t_range;
-                    t_init = true;
-                }
-                var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = _.countBy(v_data, function(v_d){
-                    var t_ind = Math.floor((v_d[tk] - t_range[0]) / t_binR);
-                    if(t_ind == t_num){
-                        t_ind --;
-                    }
-                    return t_ind;
-                });
-                t_barcharts[tk] = t_bins;
-            }else{
-                t_barcharts[tk] = _.countBy(v_data, tk);
-            }
-        }
-        var t_ids = _.map(v_data, "id");
-        var t_result = {
-            ids: t_init?null:t_ids,
-            barcharts: t_barcharts,
-            count: v_data.length,
-            range: t_ranges,
-        };
-        v_callback(t_result);
-    };
-}
+            t_ranges[t_attr] = null;
+            var t_data;
+            var tv_df = t_aggr([
+                {'$match': v_conditions.condition},
+                {'$group':{_id: '$'+t_attr, attr: {'$addToSet': t_attr}, count:{'$sum': 1}}},
+                ]).then(
+                function(v_data){
+                    if(v_data.length == 0){
 
-module.exports = {
-	initialize: initialize,
-	barchart: barchart,
-    pixelmap: pixelmap,
-    queryBC: queryBC,
-};
+                    }else{
+                        var tk = v_data[0].attr;
+                        t_data = v_data;
+                        if(v_parameters[tk]){
+                            var tt_data = t_sort(t_data, '_id');
+                            var t_num = v_parameters[tk].count, t_range = v_parameters[tk].range;
+                            if(!t_range){
+                                t_range = [tt_data[0]['_id'], tt_data[tt_data.length - 1]['_id']];
+                                t_ranges[tk] = t_range;
+                                t_init = true;
+                            }
+                            var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = {};
+                            _.each(tt_data, function(v_d){
+                                var t_ind = Math.floor((v_d['_id'] - t_range[0]) / t_binR);
+                                if(t_ind == t_num){
+                                    t_ind --;
+                                }
+                                if(t_bins[t_ind]){
+                                    t_bins[t_ind] += v_d['count'];
+                                }else{
+                                    t_bins[t_ind] = v_d['count'];
+                                }
+                            });
+                            t_barcharts[tk] = t_bins;
+                        }else{
+                            var t_d = {};
+                            _.each(t_data, function(v_d){
+                                t_d[v_d._id] = v_d.count;
+                            });
+                            t_barcharts[tk] = t_d;
+                        }
+                    }
+                }, function(v_err){
+                    console.log("Error! " + v_err);
+                });
+                t_dfs.push(tv_df);
+            }
+        }else{
+            var t_df = Q.defer();
+            t_dfs.push(t_df.promise);
+            t_df.resolve();
+        }
+        var t_dt = null, t_df0 = Q.defer();
+        Q.all(t_dfs).done(
+            function(){
+                if(!t_init){
+                    var tt_df = Q.defer();
+                    var t_return = {'_id':0, 'timeDate': 1, 'freq': 1, 'baud': 1};
+                    for(var i in v_dimensions){
+                        t_return[v_dimensions[i]] = 1;
+                    }
+                    v_query(v_sheet, {condition: v_conditions.condition, return: t_return}, function(v_data){
+                        tt_df.resolve(v_data);
+                    });
+                    Q.when(tt_df.promise, function(v_data){
+                        t0_length = v_data.length;
+                        t_df0.resolve();
+                        if(t0_length == 0){
+                            t_dt = [];
+                            t_layout = null;
+                        }else{
+                            t_dt = _.map(v_data, function(vv_d){
+                                var tt_d = {};
+                                tt_d['timeDate'] = vv_d['timeDate'];
+                                tt_d['freq'] = vv_d['freq'];
+                                tt_d['baud'] = vv_d['baud'];
+                                return tt_d;});
+                            var t_array = [];
+                            for(var i in v_dimensions){
+                                var tt_name = v_dimensions[i];
+                                t_array.push(_.map(v_data, tt_name));
+                            }
+                            t_array = numeric.transpose(t_array);
+                            t_layout = MDS.getCoordinates(t_array);
+                            t_layout = numeric.dot(t_array, t_layout);
+                            var t_size = Math.round(Math.log10(t_layout.length));
+                            t_layout = _.sample(t_layout, Math.round(t_layout.length * t_ratio[t_size]));
+                        }
+                    });
+                }else{
+                    t_df0.resolve();
+                }
+            });
+        Q.when(t_df0.promise, function(){
+                var t_length;
+                if(!v_conditions.onlyProjection){
+                    for(var i in t_barcharts){
+                        if(!t_length){
+                            var t_arr = t_barcharts[i];
+                            t_length = 0;
+                            for(var j in t_arr){
+                                t_length += t_arr[j];
+                            }
+                            break;
+                        }
+                    }
+                }else{ t_length = t0_length; };
+                var t_result = {
+                    data: t_dt,
+                    barcharts: t_barcharts,
+                    count: t_length,
+                    range: t_ranges,
+                    projection: t_layout,
+                };
+                v_callback(t_result);
+            });
+    }
+
+    function queryBC_Old(v_callback, v_parameters){
+        return function(v_data){
+            var t_keys = _.keys(v_data[0]), t_barcharts = {}, t_ranges = {}, t_init = false;
+            logger.log("Data returned: " + v_data.length);
+            for(var i in t_keys){
+                var tk = t_keys[i];
+                if(tk == "id"){
+                    continue;
+                }
+                t_ranges[tk] = null;
+                if(v_parameters[tk]){
+                    var t_num = v_parameters[tk].count, t_range = v_parameters[tk].range;
+                    if(!t_range){
+                        t_range = [_.min(v_data, tk)[tk], _.max(v_data, tk)[tk]];
+                        t_ranges[tk] = t_range;
+                        t_init = true;
+                    }
+                    var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = _.countBy(v_data, function(v_d){
+                        var t_ind = Math.floor((v_d[tk] - t_range[0]) / t_binR);
+                        if(t_ind == t_num){
+                            t_ind --;
+                        }
+                        return t_ind;
+                    });
+                    t_barcharts[tk] = t_bins;
+                }else{
+                    t_barcharts[tk] = _.countBy(v_data, tk);
+                }
+            }
+            var t_ids = _.map(v_data, "id");
+            var t_result = {
+                ids: t_init?null:t_ids,
+                barcharts: t_barcharts,
+                count: v_data.length,
+                range: t_ranges,
+            };
+            v_callback(t_result);
+        };
+    }
+
+    module.exports = {
+        initialize: initialize,
+        barchart: barchart,
+        pixelmap: pixelmap,
+        queryBC: queryBC,
+    };
