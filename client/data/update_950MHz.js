@@ -29,10 +29,10 @@ db.getCollection(collection).find( { time : { $exists : true } } ).forEach( func
 });
 print("Time updated!");
 db.SignalDB.createIndex({
-	"freq": 1, 
-	"baud": 1, 
-	"scope": 1, 
-	"carriernoise": 1, 
+	"freq": 1,
+	"baud": 1,
+	"scope": 1,
+	"carriernoise": 1,
 	"timeDate": 1,
 	"Modulationmode": 1,
 	"Modulationrate": 1,

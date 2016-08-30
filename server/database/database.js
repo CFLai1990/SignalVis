@@ -1,9 +1,8 @@
 var MongoClient = require('mongodb').MongoClient
 , assert = require('assert');
 // Connection URL
-var url = "mongodb://192.168.10.9:27017/SignalDataBase";
-// var url = "mongodb://127.0.0.1:27017/local";
-
+// var url = "mongodb://192.168.10.9:27017/SignalDataBase";
+var url = "mongodb://127.0.0.1:27017/local";
 var logger;
 
 function initialize(v_logger){
@@ -99,16 +98,12 @@ function clearAll(db, callback){
 	});
 }
 
-function query(v_sheet, v_conditions, callback, v_extra){
+function query(v_sheet, v_conditions, callback){
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 		// console.log("      DB: Connected correctly to server");
 		var collection;
-		if(v_extra){
-			collection = db.collection(v_extra.collection);
-		}else{
-			collection = db.collection(v_sheet);
-		}
+		collection = db.collection(v_sheet);
 		collection.find(v_conditions.condition, v_conditions.return).toArray(function(err, docs) {
 			assert.equal(err, null);
 			// console.log("      DB: The following records are found");

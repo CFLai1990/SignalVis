@@ -48,7 +48,7 @@ define([
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
             self.margin = {top: t_height * 0.2, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.25};
-            
+
 			var aggCount = Datacenter.get("aggCount");
             var maxCount = self.max(aggCount);
             var legendElementWidth = t_width * 0.5;
@@ -57,16 +57,15 @@ define([
             }
             self.margin.left = (t_width - legendElementWidth) / 2;
             self.margin.top = (t_height - 9 * legendElementWidth) / 2;
-            
+
 			self.colorScale = d3.scale.quantile()
                .domain([maxCount,0])
                .range(colorbrewer.YlGnBu[9]);
-               console.log("max", maxCount);
-                            
+
             self.mainRegin = self.d3el.append("g")
                .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
                .attr("class","mainReginSvg");
-				
+
             var legend = self.mainRegin.selectAll(".legend")
                 .data([0].concat(self.colorScale.quantiles()), function(d) { return d; });
 
@@ -79,7 +78,7 @@ define([
 	            .attr("width", legendElementWidth)
 	            .attr("height", legendElementWidth)
 	            .style("fill", function(d, i) { return colorbrewer.YlGnBu[9][i]; });
-	            
+
 	        legend.append("text")
 	            .attr("class", "lengendText")
 	            .text(function(d) { return Math.ceil(d); })
@@ -87,8 +86,8 @@ define([
 	            .style("fill","#fff")
 	            .attr("x", legendElementWidth + 9)
 	            .attr("y", function(d, i) { return legendElementWidth * (9-i-0.5); });
-	            
+
         },
-        
+
     }, SVGBase));
 });

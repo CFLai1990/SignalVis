@@ -30,11 +30,12 @@ define([
                   }
           	 });
         },
-        
+
         specDiagram: function(){
             var self = this;
             var specResult = Variables.get("specResult");
             var filterData = Variables.get("filterData");
+
             d3.selectAll('.line').remove();
             d3.selectAll('.signalPoint').remove();
             //console.log(filterData);
@@ -46,15 +47,23 @@ define([
             var scope_scale = d3.scale.linear()
     		      .range(t_scope?(t_scope.get("xRange")):(t_scopedbm.get("xRange")))
     		      .domain([426,2245]);
-            
+
+            var bandwidth_scale = d3.scale.linear()
+              .range([5,20])
+              .domain(d3.extent(filterData, function(d) { return d.bandwidth; }));
+
+            var noise_scale = d3.scale.linear()
+              .range([5,20])
+              .domain(d3.extent(filterData, function(d) { return d.signalnoise; }));
+
             specResult.forEach(function(d){
            	   d.scope = scope_scale(d.scope);
             });
-            
+
             var line = d3.svg.line()
               .x(function(d) { return self.x_line(d.frequency); })
               .y(function(d) { return self.y_line(d.scope); });
-            
+
             self.svg_line.append("path")
     		      .datum(specResult)
     		      .attr("class", "line")
@@ -83,42 +92,101 @@ define([
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer");
     		      // .on("mouseover",function(d){
-    		      // 	var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
     		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      // 	line_showTooltip(x0,y0);
+    		      // 	  line_showTooltip(x0,y0);
     		      // })
     		      // .on("mouseout",function(){
-    		      // 	line_hideTooltip();
+    		      // 	  line_hideTooltip();
     		      // });
-		      
-        		function line_showTooltip(x,y){
+
+            self.svg_line.selectAll(".signalPoint")
+              .data(filterData)
+              .enter()
+              .append("path")
+              .attr("class", "signalPoint")
+              .attr("d", function(d){
+                var x_pos = self.x_line(d.midfre);
+                var y_pos = self.y_line(d.scopedbm);
+                var width_r = bandwidth_scale(d.bandwidth)/2;
+                var height_r = noise_scale(d.signalnoise)/2;
+
+                return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
+              })
+              .style("stroke-width", .2)
+              .style("stroke", "white")
+              .style("fill", "#1d91c0")
+              .style('fill-opacity',.5)
+              .style("cursor","pointer")
+    		      .on("mouseover",function(d){
+    		      	var x0 = self.x_line(d.midfre),
+    		      		y0 = self.y_line(d.scopedbm),
+                  a0 = d.bandwidth,
+                  b0 = d.signalnoise;
+    		      	line_showTooltip(x0,y0,a0,b0);
+    		      })
+    		      .on("mouseout",function(){
+    		      	line_hideTooltip();
+    		      });
+
+//时间定位线
+            self.timeFocus_line = self.svg_line.append("g")
+                .attr("class", "timeFocus_line")
+                .style("display", "none");
+
+            self.timeFocus_line.append("line")
+                //.attr("y1", 0)
+                .attr('y2', self.Height_line)
+                .attr('x1', 0)
+                .attr('x2', 0)
+                .style('fill','none')
+                .style('stroke','#fb9235')
+                .style("stroke-dasharray", ("6, 6"))
+                .style("stroke-width", 1);
+
+            self.timeFocus_line.append("text")
+                .attr("dy", "-.3em")
+  //            .attr("transform", "translate(" + self.chartWidth + ",0)")
+                .attr('text-anchor','middle')
+                .style('fill','#fb9235')
+                .style('font-size','12px');
+
+            self.svg_line.append("rect")
+                .attr("class", "overlay_line")
+                .attr("transform", "translate(0," + self.Height_line + ")")
+                .attr("width", self.chartWidth)
+                .attr("height", 8)
+                .style('fill','none')
+                .style('pointer-events','all')
+                .style('cursor','pointer')
+                .on("mouseover", function() { self.timeFocus_line.style("display", null); })
+          //      .on("mouseout", function() { self.timeFocus.style("display", "none"); })
+                .on("mousemove", mousemove);
+
+            var trangle = self.timeFocus_line.append('path')
+                .attr("transform", "translate(0," + self.Height_line + ")")
+                .attr('d',self.symbol)
+                .attr('fill','#fb9235');
+
+            function mousemove() {
+                var x_fre = self.x_line.invert(d3.mouse(this)[0]);
+                var y_scope = self.y_line.invert(d3.mouse(this)[1]);
+                self.timeFocus_line.attr("transform", "translate(" + d3.mouse(this)[0] + "," + 0 + ")")
+                                   .attr("y1", self.y_line(d3.mouse(this)[1]));
+                self.timeFocus_line.select("text").text("中心频率："+x_fre.toFixed(3)+"MHz 功率："+y_scope.toFixed(3)+"dBm");
+            }
+//时间定位线 END
+
+        		function line_showTooltip(x,y,a,b){
                var tooltip_scatter = self.svg_line.append("g")
                   .attr("class", "tooltip_scatter");
-			   
+
                tooltip_scatter.append("text")
                   .attr("font-size", '13px')
                   .attr("x", self.Width_line/3)
                   .attr("y", 10)
                   .attr("fill","#fff")
-                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm");
-
-               tooltip_scatter.append('line')
-                  .attr('x1',self.x_line(x))
-                  .attr('x2',self.x_line(x))
-                  .attr('y1',self.y_line(y))
-                  .attr('y2',self.Height_line)
-                  .style('fill','none')
-                  .style('stroke','grey')
-                  .style("stroke-dasharray", ("3, 3"));
-
-               tooltip_scatter.append('line')
-                  .attr('x1',self.x_line(x))
-                  .attr('x2',0)
-                  .attr('y1',self.y_line(y))
-                  .attr('y2',self.y_line(y))
-                  .style('fill','none')
-                  .style('stroke','grey')
-                  .style("stroke-dasharray", ("3, 3"));
+                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
             }
 
          	function line_hideTooltip(){
@@ -259,7 +327,6 @@ define([
             var h = self.chartHeight/aggCount.length,
                 w = self.chartWidth/aggCount[0].length;
             var brush_height = self.chartHeight;
-            
             var time_range = Datacenter.get("timeRange");
             var start_time = time_range[0];
 //useful variables END
@@ -325,6 +392,12 @@ define([
               .style("text-anchor", "start")
               .style("fill","#fff")
               .text("发现时间");
+
+            self.mainRegin.append("defs").append("clipPath")
+              .attr("id", "clip_heatmap")
+              .append("rect")
+              .attr("width", self.chartWidth)
+              .attr("height", self.chartHeight);
 //heatmap
           var row = self.mainRegin.selectAll(".row")
              .data(aggCount)
@@ -335,8 +408,9 @@ define([
              .data(function (d,i) { return d.map(function(a,j) { return {value: a, gridrow: i, gridcol: j}; } ) })
            .enter().append("rect")
              .attr("class", "grid")
+             .attr("clip-path", "url(#clip_heatmap)")
              .attr("x", function(d, i) { return self.xScale(i); })
-             .attr("y", function(d, i) { return self.yScale(d.gridrow); })
+             .attr("y", function(d, i) { return self.yScale(d.gridrow)-h; })
              .attr("width", w)
              .attr("height", h)
              .style("fill", function(d) {
@@ -352,7 +426,7 @@ define([
                  var grid_x_ed = self.xAxisScale.invert(w+w*d.gridcol);
                  var grid_y_st = self.yAxisScale.invert(self.chartHeight-(h*d.gridrow));
                  var grid_y_ed = self.yAxisScale.invert(self.chartHeight-(h+h*d.gridrow));
-                
+
                  var grid_time_st = grid_x_st.toFixed(3);
                  var grid_time_ed = grid_x_ed.toFixed(3);
                  var grid_Mid_st = grid_y_st.toTimeString().substr(0,8);
@@ -378,7 +452,7 @@ define([
 //时间定位线
             self.symbol = d3.svg.symbol().type('triangle-up')
                	    .size(80);
-                
+
 		        self.timeFocus = self.mainRegin.append("g")
 		            .attr("class", "timeFocus")
 		            .style("display", "none");
@@ -436,12 +510,12 @@ define([
 
                 var yAxis_line = d3.svg.axis()
                     .scale(self.y_line)
-                    .orient("left");               
+                    .orient("left");
 
                 self.svg_line = self.d3el.append("g")
                     .attr("transform", "translate(" + self.margin_line.left + "," + self.margin_line.top + ")")
                     .attr("class","svg_line");
-                    
+
 			//	console.log(d3.extent(detailSignals, function(d) { return d.midfre; }));
                 var t_bcs = Datacenter.get("barcharts");
                 var t_scope = t_bcs["scope"]?t_bcs["scope"]:t_bcs["scopedbm"];
@@ -449,7 +523,6 @@ define([
                 if(t_scope){
                   self.y_line.domain(t_scope.get("xRange"));
                 }
-     
                  self.svg_line.append("g")
                       .attr("class", "x axis")
                       .attr("transform", "translate(0," + self.Height_line + ")")
@@ -471,7 +544,7 @@ define([
                       .style("text-anchor", "start")
                       .style("fill","#fff")
                       .text("功率(dBm)");
-                      
+
                   self.svg_line.append("defs").append("clipPath")
       				    	  .attr("id", "clip")
       				      .append("rect")
@@ -484,7 +557,7 @@ define([
                 var current_time = self.yAxisScale.invert(d3.mouse(this)[1]).getTime();
                 //frame number
                 var frame_num = parseInt((parseInt((current_time - start_time)/1000))/(231/3008));
-                                
+
 				        d3.select('.line_title').remove();
 
                 self.svg_line.append('g')
@@ -557,7 +630,7 @@ define([
 				    .attr("width", 50)
 				    .attr("height", 50)
 				    .append("xhtml:body")
-				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-plus"></i></span>')
+				    .html('<span class="zoombtn btn btn-default btn-xs"><i class="fa fa-plus"></i></span>')
 				    .on('click',zoomin);
 
     			self.mainRegin.append('svg:foreignObject')
@@ -565,7 +638,7 @@ define([
 				    .attr("width", 50)
 				    .attr("height", 50)
 				    .append("xhtml:body")
-				    .html('<span class="btn btn-default btn-xs"><i class="fa fa-minus"></i></span>')
+				    .html('<span class="zoombtn btn btn-default btn-xs"><i class="fa fa-minus"></i></span>')
 				    .on('click',zoomout);
 //zoom btn END
 //change opacity when brushing

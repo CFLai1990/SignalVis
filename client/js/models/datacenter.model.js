@@ -273,7 +273,7 @@
             //             key: v_attr,
             //             bins: Config.get("barchart").bins,
             //     });
-            // }            
+            // }
         },
 
         setPixelMap: function(v_name, v_attr, v_subname, v_subattr, v_size, v_td){
@@ -299,6 +299,8 @@
                     self.set("minMidfre",t_fr[0]);
                     self.set("maxMidfre",t_fr[1]);
                     Config.set("size", v_d.size);
+                    Variables.get("filterRanges")["timeDate"] = null;
+                    Variables.get("filterRanges")["baud"] = null;
                 }, v_td, {
                     key: v_attr,
                     attr: v_name,
@@ -312,7 +314,7 @@
             var scatterplotModel = new ScatterPlotModel({
                 "xModel": self.get("barcharts")["bandwidth"],
                 "yModel": self.get("barcharts")["carriernoise"],
-                "filterSignals": self.get("filterSignals")
+                "filters":self.get("filterSignals")
             });
             self.set("scatterplot",scatterplotModel);
         },
@@ -389,12 +391,16 @@
         updateFilterArrWithoutInx: function(v_df) {
             var self = this;
             var filterRanges = Variables.get("filterRanges"),
-            t_attrs = Config.get("nameList");
+            t_attrs = Config.get("nameList"), t_null = true;
             console.time(1);
-            var filters = [];
-            for(var i in filterRanges){
+            var filters = [], t_keys = d3.set(_.keys(filterRanges));
+            for(var i in t_attrs){
+                if(!t_keys.has(i)){
+                    continue;
+                }
                 var t_range = filterRanges[i];
                 if(t_range){
+                    t_null = false;
                     var filter = {
                         name: i,
                         range: filterRanges[i].slice(0),
@@ -407,7 +413,7 @@
                     filters.push(filter);
                 }
             }
-            if(filters.length == 0) {
+            if(t_null) {
                 Variables.set("filterSignals", null);
                 Variables.trigger("clearFilter");
                 self.trigger("updateFilterCount", self.get("signalNum"));
@@ -527,7 +533,7 @@
                     update: v_update,
                 }),
                 success: function(v_data){
-                    console.info("Query Sucess!", v_command, v_condition);
+                    console.info("Query Sucess!", v_command, v_condition, v_extra);
                     if(v_callback) v_callback(v_data);
                     if(v_deferred) v_deferred.resolve();
                 },
@@ -598,7 +604,7 @@
         },
 
         getBCAttributes: function(){
-            var self = this, t_list = Config.get("barchart").list, 
+            var self = this, t_list = Config.get("barchart").list,
             t_bc = self.get("barcharts"), t_attrs = Config.get("attrs");
             var t_r = {}, t_return = {'id': 1, '_id': 0}, t_pm = {};
             for(var i in t_list){
@@ -644,7 +650,6 @@
                     Variables.get("filterRanges")[i] = null;
                 }
                 self.set("barcharts", t_bcs);
-
             }else{
                 for(var i in v_bc){
                     var t_name = t_nl[i].name, t_bc = t_bcs[t_name];
