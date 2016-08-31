@@ -105,7 +105,6 @@ define([
                                 default:
                                     t_range = Datacenter.get("barcharts")[i];
                                     if(t_range){
-                                        console.log(i, t_range.get("filterRange"));
                                         if(t_range.get("filterRange")){
                                             t_range = t_range.get("filterRange");
                                         }else{

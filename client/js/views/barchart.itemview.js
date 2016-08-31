@@ -46,7 +46,7 @@ define([
                         })
                         .attr("y", function(d){
                             return self.chartHeight - self.yScale((d==0)?0.1:d);})
-                        .attr("height", function(d) { 
+                        .attr("height", function(d) {
                             if(self.yScale((d==0)?0.1:d)<0){
                                 console.log(d, self.yScale.domain());
                             }
@@ -327,7 +327,7 @@ define([
                     }
                     $(this).text(t_text);
                     if(t_cate){
-                        t_savText = t_savText + ": " + t_allBins[i];
+                            t_savText = t_savText + ": " + t_allBins[i];
                     }
                     $(this)
                     .attr("title", t_savText)
@@ -347,7 +347,7 @@ define([
               .on("mouseout", function(d,i){
                 if(t_cate){
                     self.$el.find(".totalBin:eq("+i+")").removeClass("active");
-                }                
+                }
               });
             if(t_cate){
                 t_xg.append("line")
@@ -366,6 +366,12 @@ define([
              binsEnter.append("rect")
                             .attr("width", self.binWidth)
                             .attr("x", function(d,i) {
+                                $(this)
+                                .attr("title", d)
+                                .attr("data-placement","top")
+                                .tooltip({
+                                    container: '.barchartSVG',
+                                });
                                 return self.xScale(i);
                             })
                             .attr("y", function(d){return self.chartHeight - self.yScale((d==0)?0.1:d);})
@@ -397,7 +403,7 @@ define([
                                                     brushRange = null;
                                                 }else{
                                                     var t_start = tt_r[0], t_end = tt_r[1], t_sign = false;
-                                                    tt_r = [];                                            
+                                                    tt_r = [];
                                                     for(var i in t_d){
                                                         var tt_dict = t_d[i];
                                                         if(tt_dict == t_start){
