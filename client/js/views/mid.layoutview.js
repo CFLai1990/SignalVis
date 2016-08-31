@@ -35,7 +35,7 @@ define([
             },
             initialize: function() {
                 var self = this;
-                self.listenTo(Variables, "changeFilterRange",  function(model){
+                self.listenTo(Variables, "updateFilter",  function(model){
                         self.updateMidTexts();
                 });
                 self.listenTo(Datacenter, "updateFilterCount", function(v_count){
@@ -43,8 +43,7 @@ define([
                 })
             },
             onClickColorBtns: function(evt) {
-                var values = evt.target.getAttribute("data-value")
-                console.log(values);
+                var values = evt.target.getAttribute("data-value");
                 // console.log(event.target);
                 $(this.$el).find("#colorBtns").find(".button").removeClass("active");
                 $(evt.target).addClass("active");
@@ -61,8 +60,7 @@ define([
                 }
             },
             onClickSizeBtns: function(evt) {
-                 var values = evt.target.getAttribute("data-value")
-                console.log(values);
+                 var values = evt.target.getAttribute("data-value");
                 // console.log(event.target);
                 $(this.$el).find("#sizeBtns").find(".button").removeClass("active");
                 $(evt.target).addClass("active");
@@ -96,7 +94,7 @@ define([
                     var t_atobj = t_attrs[i];
                     if(t_atobj.text){
                         t_range = Variables.get("filterRanges")[t_atobj.attr];
-                        if(!t_range){
+                        // if(!t_range){
                             switch(i){
                                 case "firsttime":
                                     t_range = Datacenter.get("timeRange");
@@ -107,11 +105,16 @@ define([
                                 default:
                                     t_range = Datacenter.get("barcharts")[i];
                                     if(t_range){
-                                        t_range = t_range.get("xRange");
+                                        console.log(i, t_range.get("filterRange"));
+                                        if(t_range.get("filterRange")){
+                                            t_range = t_range.get("filterRange");
+                                        }else{
+                                            t_range = t_range.get("xRange");
+                                        }
                                     }
                                 break;
                             }
-                        }
+                        // }
                         if(!t_range){
                             // console.log("No attribute: " + i);
                             this.$el.find("."+t_atobj.text).css("display", "none");

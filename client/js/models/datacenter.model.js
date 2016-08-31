@@ -518,7 +518,7 @@
                     }, v_df1, {
                         collection: t_collection,
                     });
-                });       
+                });
             }
         },
 
@@ -597,6 +597,7 @@
                 }else{
                     Datacenter.set("signalNum",v_data.count);
                 }
+                Variables.trigger("updateFilter");
             }, v_df, t_return.parameters);
             if(t_onlyPr){
                 self.set("onlyProjection", false);
@@ -656,7 +657,7 @@
                     if(!t_bc){
                         console.log("no " + t_name);
                     }else{
-                        t_bc.update(v_bc[i]);
+                        t_bc.update(v_bc[i], v_range[i]);
                     }
                 }
             }
