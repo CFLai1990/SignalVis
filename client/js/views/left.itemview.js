@@ -80,12 +80,12 @@ define([
     		      .on("mouseout",function(){
     		      	  line_hideTooltip();
     		      });
-		      
+
     		    self.svg_line.selectAll(".signalPoint")
     		      .data(filterData)
     		      .enter()
     		      .append("circle")
-    		      .attr("class", "signalPoint") 
+    		      .attr("class", "signalPoint")
     		      .attr("cx", function(d){return self.x_line(d.midfre);})
     		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
@@ -308,7 +308,7 @@ define([
         {
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
-            self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.05};
+            self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: 70};
             self.chartWidth = t_width - self.margin.left - self.margin.right;
             self.chartHeight = t_height * 0.57;
             self.have_zoomin = 0;
@@ -329,6 +329,7 @@ define([
             var brush_height = self.chartHeight;
             var time_range = Datacenter.get("timeRange");
             var start_time = time_range[0];
+            var t_days = (time_range[1] - time_range[0] ) / (24*1000*3600);
 //useful variables END
 //scales and brushes
             self.xScale = d3.scale.linear()
@@ -365,9 +366,19 @@ define([
             self.mainRegin = self.d3el.append("g")
               .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
               .attr("class","mainReginSvg");
+              var t_format;
+              if(t_days >= 7 ){
+                t_format = "%b %d";
+              }else{
+                if(t_days >= 1){
+                  t_format = "%b %d %I:%M";
+                }else{
+                  t_format = "%H:%M:%S";
+                }
+              }
 
             self.xAxis = d3.svg.axis().scale(self.xAxisScale).orient("bottom");
-            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").tickFormat(d3.time.format("%H:%M:%S"));;
+            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").tickFormat(d3.time.format(t_format));
 //xAxis
             self.mainRegin.append("g")
               .attr("class", "x axis")
@@ -494,7 +505,7 @@ define([
 		            .attr('fill','#fb9235');
 //时间定位线 END
 //频谱图
-                self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_height * 0.05, left: t_width * 0.05};
+                self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_height * 0.05, left: 70};
                 self.Width_line = self.$el.width() - self.margin_line.left - self.margin_line.right;
                 self.Height_line = t_height * 0.27;
 
@@ -567,7 +578,7 @@ define([
                   .style("fill","#fff")
                   .attr("class","line_title")
                   .text("时间：" + y_time);
-                  
+
                 // var filterData = detailSignals.filter(function(d){
                 //   var timeStamp = new Date(d.firsttime).toTimeString().substr(0,8);
                 //   if(timeStamp == y_time)
@@ -582,7 +593,7 @@ define([
                 if(t_list.indexOf("scopedbm")>=0){
                   t_scope = Config.get("attrs")["scopedbm"].attr;
                 }
-                
+
                 var t_binTime = Datacenter.get("timeRange");
                 t_binTime = (t_binTime[1] - t_binTime[0])/(Config.get("pixel").plansize[1]);
                 var tt_time = new Date(self.yAxisScale.invert(d3.mouse(this)[1])).getTime();

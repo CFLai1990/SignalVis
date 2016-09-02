@@ -4,16 +4,6 @@ var t_sort = function(v_array, v_key){
     return _.sortBy(v_array, v_key);
 }
 
-// $.whenWithProgress = function(arrayOfPromises, progressCallback) {
-//    var cntr = 0;
-//    for (var i = 0; i < arrayOfPromises.length; i++) {
-//        arrayOfPromises[i].done(function() {
-//            progressCallback();
-//        });
-//    }
-//    return jQuery.when.apply(jQuery, arrayOfPromises);
-// }
-
 function initialize(v_db, v_logger){
 	logger = v_logger;
 	return this;
@@ -126,9 +116,10 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                         if(v_parameters[tk]){
                             var tt_data = t_sort(t_data, '_id');
                             var t_num = v_parameters[tk].count, t_range = v_parameters[tk].range;
+                            var v_range = [tt_data[0]['_id'], tt_data[tt_data.length - 1]['_id']];
+                            t_ranges[tk] = v_range;
                             if(!t_range){
-                                t_range = [tt_data[0]['_id'], tt_data[tt_data.length - 1]['_id']];
-                                t_ranges[tk] = t_range;
+                                t_range = v_range;
                                 t_init = true;
                             }
                             var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = {};
@@ -195,7 +186,7 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                             t_array = numeric.transpose(t_array);
                             t_layout = MDS.getCoordinates(t_array);
                             t_layout = numeric.dot(t_array, t_layout);
-                            var t_size = Math.round(Math.log10(t_layout.length));
+                            var t_size = Math.floor(Math.log10(t_layout.length));
                             t_layout = _.sample(t_layout, Math.round(t_layout.length * t_ratio[t_size]));
                         }
                     });
