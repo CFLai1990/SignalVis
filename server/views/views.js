@@ -86,7 +86,8 @@ function pixelmap(v_callback, v_parameters){
 
 function queryBC(v_query, v_aggr, v_allCondition, v_callback){
     var v_sheet = v_allCondition.table, v_conditions = v_allCondition.condition,
-    v_dimensions = v_conditions.dimensions, v_parameters = v_allCondition.extra;
+    v_dimensions = v_conditions.dimensions, v_glyphs = v_conditions.glyphs,
+    v_parameters = v_allCondition.extra;
     var t0_length = 0, t_ratio = v_conditions.ratio;
     var t_attrs = v_conditions.return, t_dfs = [], t_barcharts = {}, t_ranges = {}, t_init = false, t_layout = null;
     var t_aggr = function(v_condition){
@@ -162,6 +163,9 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                     for(var i in v_dimensions){
                         t_return[v_dimensions[i]] = 1;
                     }
+                    for(var i in v_glyphs){
+                        t_return[i] = 1;
+                    }
                     v_query(v_sheet, {condition: v_conditions.condition, return: t_return}, function(v_data){
                         tt_df.resolve(v_data);
                     });
@@ -177,7 +181,21 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                                 tt_d['timeDate'] = vv_d['timeDate'];
                                 tt_d['freq'] = vv_d['freq'];
                                 tt_d['baud'] = vv_d['baud'];
+                                if(vv_d['scope']){
+                                    tt_d['scope'] = vv_d['scope']
+                                }
+                                if(vv_d['dbm']){
+                                    tt_d['dbm'] = vv_d['dbm']
+                                }
+                                if(vv_d['carriernoise']){
+                                    tt_d['carriernoise'] = vv_d['carriernoise'];
+                                }
+                                if(vv_d['snr']){
+                                    tt_d['snr'] = vv_d['snr'];
+                                }
                                 return tt_d;});
+                            console.log(v_data[0]);
+                            console.log(t_dt[0]);
                             var t_array = [];
                             for(var i in v_dimensions){
                                 var tt_name = v_dimensions[i];

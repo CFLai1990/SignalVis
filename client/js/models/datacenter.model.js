@@ -335,18 +335,24 @@
             var bandwidthRange = [];
             var scopeRange = [];
             var carriernoiseRange = [];
-            var t_bandwidth = self.get("barcharts")["bandwidth"];
+            var t_bc = self.get("barcharts");
+            var t_bandwidth = t_bc["bandwidth"];
             bandwidthRange = t_bandwidth?t_bandwidth.get("xRange"):null;
-            var t_scope = self.get("barcharts")["scope"], t_dbmscope = self.get("barcharts")["scopedbm"];
+            var t_scope = t_bc["scope"], t_dbmscope = t_bc["scopedbm"];
             if(t_scope){
                 scopeRange = t_scope.get("xRange");
+            }else{
+                if(t_dbmscope){
+                    scopeRange = t_dbmscope.get("xRange");
+                }
             }
-            if(t_dbmscope){
-                scopeRange = t_dbmscope.get("xRange");
-            }
-            var t_carrier = self.get("barcharts")["carriernoise"];
+            var t_carrier = t_bc["carriernoise"], t_snr = t_bc["signalnoise"];
             if(t_carrier){
                 carriernoiseRange = t_carrier.get("xRange");
+            }else{
+                if(t_snr){
+                    carriernoiseRange = t_snr.get("xRange");
+                }
             }
             if(bandwidthRange.length == 0 || scopeRange.length == 0 || carriernoiseRange.length == 0){
                 this.set("detailSignals", null);
@@ -464,18 +470,24 @@
                     "bandwidth": "bandwidth",
                     "carriernoise": "carriernoise",
                     "signalnoise": "carriernoise",
+                    "firsttime": "firsttime",
+                    "midfre": "midfre",
                 }
                 var t_result = _.map(detailSignals, function(v_d){
                     var t_d = {};
                     for(var i in v_d){
-                        t_d[t_namelist[i]] = v_d[i];
+                        if(t_namelist[i]){
+                            t_d[t_namelist[i]] = v_d[i];
+                        }
                     }
                     return t_d;
                 })
                 Variables.set("detailSignals",t_result);
+                Variables.trigger("changeDetailSignals");
             }
             else {
                 Variables.set("detailSignals",null);
+                Variables.trigger("changeDetailSignals");
             }
             console.timeEnd(2);
         },
@@ -493,9 +505,24 @@
                             '$lte': v_time[1] + 8 * 3600 * 1000,
                         }
                     },
-                    return: _.extend(v_return, {'_id': 0, 'freq': 1}),
+                    return: _.extend(v_return, {
+                        '_id': 0,
+                        'freq': 1, 
+                        'scope': 1,
+                        'dbm': 1,
+                        // 'baud': 1,
+                        // 'snr': 1,
+                        // 'carriernoise': 1,
+                    }),
                 }, function(v_d){
-                    var t_result = [], t_namelist = {freq: "midfre"};
+                    var t_result = [], t_namelist = {
+                        freq: "midfre",
+                        scope: "scope",
+                        dbm: "scope",
+                        baud: "bandwidth",
+                        snr: "signalnoise",
+                        carriernoise: "signalnoise",
+                    };
                     t_namelist[v_scope] = "scope";
                     for(var i in v_d){
                         var t_r = {}, vv_d = v_d[i];
@@ -553,10 +580,12 @@
                 t_return = self.getBCAttributes();
             }
             t_dims = self.getDimensions();
+            var t_glyphs = self.getGlyphs();
             var t_condition = {
                     condition: v_condition,
                     return: t_return.attrs,
                     dimensions: t_dims,
+                    glyphs: t_glyphs,
                     onlyProjection: t_onlyPr,
                     ratio: Config.get("projection")["SampleRate"],
                 };
@@ -627,6 +656,25 @@
             var t_result = [];
             for(var i in t_dims){
                 t_result.push("norm" + t_attrs[t_dims[i]].attr);
+            }
+            return t_result;
+        },
+
+        getGlyphs: function (){
+            var self = this, t_bc = self.get("barcharts"), t_result = {};
+            if(t_bc){
+                if(t_bc["scope"]){
+                    t_result["scope"] = 1;
+                }
+                if(t_bc["scopedbm"]){
+                    t_result["dbm"] = 1;
+                }
+                if(t_bc["carriernoise"]){
+                    t_result["carriernoise"] = 1;
+                }
+                if(t_bc["signalnoise"]){
+                    t_result["snr"] = 1;
+                }
             }
             return t_result;
         },

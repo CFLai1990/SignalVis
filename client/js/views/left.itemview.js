@@ -38,6 +38,8 @@ define([
 
             d3.selectAll('.line').remove();
             d3.selectAll('.signalPoint').remove();
+            d3.selectAll('.timeFocus_line').remove();
+            d3.selectAll(".overlay_line").remove();
             //console.log(filterData);
             var t_bcs = Datacenter.get("barcharts");
             var t_scope = t_bcs["scope"], t_scopedbm = t_bcs["scopedbm"];
@@ -72,62 +74,68 @@ define([
     		      .style('fill','none')
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer")
-    		      .on("mouseover",function(d){
-    		      	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      	  line_showTooltip(x0,y0);
-    		      })
-    		      .on("mouseout",function(){
-    		      	  line_hideTooltip();
-    		      });
+    		      // .on("mouseover",function(d){
+    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      // 	  // line_showTooltip(x0,y0);
+    		      // })
+    		      // .on("mouseout",function(){
+    		      // 	  line_hideTooltip();
+    		      // });
 
     		    self.svg_line.selectAll(".signalPoint")
     		      .data(filterData)
     		      .enter()
     		      .append("circle")
     		      .attr("class", "signalPoint")
-    		      .attr("cx", function(d){return self.x_line(d.midfre);})
+    		      .attr("cx", function(d){
+                var t_text = "功率：" + d.scope.toFixed(3) + " dbm " + "中心频率："+ d.midfre.toFixed(3) + "MHz ";
+                $(this)
+                .attr("data-placement","top")
+                .tooltip({
+                    container: '#left',
+                    viewpoint: '#left',
+                    placement: 'top',
+                    title: t_text,
+                });
+                return self.x_line(d.midfre);
+              })
     		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer");
+
+            // self.svg_line.selectAll(".signalPoint2")
+            //   .data(filterData)
+            //   .enter()
+            //   .append("path")
+            //   .attr("class", "signalPoint2")
+            //   .attr("d", function(d, i){
+            //     if(i == 0){
+            //       console.log(self.x_line.domain(), d);
+            //     }
+            //     var x_pos = self.x_line(d.midfre);
+            //     var y_pos = self.y_line(d.scope);
+            //     var width_r = bandwidth_scale(d.bandwidth)/2;
+            //     var height_r = noise_scale(d.signalnoise)/2;
+
+            //     return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
+            //   })
+            //   .style("stroke-width", .2)
+            //   .style("stroke", "white")
+            //   .style("fill", "#1d91c0")
+            //   .style('fill-opacity',.5)
+            //   .style("cursor","pointer")
     		      // .on("mouseover",function(d){
-    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      // 	  line_showTooltip(x0,y0);
+    		      // 	var x0 = self.x_line(d.midfre),
+    		      // 		y0 = self.y_line(d.scope),
+            //       a0 = d.bandwidth,
+            //       b0 = d.signalnoise;
+    		      // 	line_showTooltip(x0,y0,a0,b0);
     		      // })
     		      // .on("mouseout",function(){
-    		      // 	  line_hideTooltip();
+    		      // 	line_hideTooltip();
     		      // });
-
-            self.svg_line.selectAll(".signalPoint")
-              .data(filterData)
-              .enter()
-              .append("path")
-              .attr("class", "signalPoint")
-              .attr("d", function(d){
-                var x_pos = self.x_line(d.midfre);
-                var y_pos = self.y_line(d.scopedbm);
-                var width_r = bandwidth_scale(d.bandwidth)/2;
-                var height_r = noise_scale(d.signalnoise)/2;
-
-                return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
-              })
-              .style("stroke-width", .2)
-              .style("stroke", "white")
-              .style("fill", "#1d91c0")
-              .style('fill-opacity',.5)
-              .style("cursor","pointer")
-    		      .on("mouseover",function(d){
-    		      	var x0 = self.x_line(d.midfre),
-    		      		y0 = self.y_line(d.scopedbm),
-                  a0 = d.bandwidth,
-                  b0 = d.signalnoise;
-    		      	line_showTooltip(x0,y0,a0,b0);
-    		      })
-    		      .on("mouseout",function(){
-    		      	line_hideTooltip();
-    		      });
 
 //时间定位线
             self.timeFocus_line = self.svg_line.append("g")
@@ -177,7 +185,7 @@ define([
             }
 //时间定位线 END
 
-        		function line_showTooltip(x,y,a,b){
+        		function line_showTooltip(x,y){
                var tooltip_scatter = self.svg_line.append("g")
                   .attr("class", "tooltip_scatter");
 
@@ -186,7 +194,7 @@ define([
                   .attr("x", self.Width_line/3)
                   .attr("y", 10)
                   .attr("fill","#fff")
-                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
+                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3));// + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
             }
 
          	function line_hideTooltip(){
@@ -225,11 +233,19 @@ define([
                     .attr("class", "point")
                     .attr("r", function(d) { return self.scattersizeScale(d.bandwidth);})
                     .attr("fill",'#00AEEF')
-                    .attr("cx", function(d) { return self.xAxisScale(d.midfre); })
-                    .attr("cy", function(d) { return self.yAxisScale(new Date(d.firsttime)); })
-                    .style('cursor','pointer')
-                    .on('mouseover',function(d){showTooltip(d,this);})
-                    .on('mouseout',function(d){hideTooltip(d,this);});
+                    .attr("cx", function(d) {
+                      var t_text = JSON.stringify(d);
+                      $(this)
+                      .attr("title", t_text)
+                      .attr("data-placement","top")
+                      .tooltip({
+                          container: '#left',
+                      });
+                      return self.xAxisScale(d.midfre); })
+                    .attr("cy", function(d) { return self.yAxisScale(d.firsttime); })
+                    .style('cursor','pointer');
+                    // .on('mouseover',function(d){showTooltip(d,this);})
+                    // .on('mouseout',function(d){hideTooltip(d,this);});
 
              self.mainRegin.transition().duration(500)
                     .select(".x.axis")
@@ -354,12 +370,12 @@ define([
 
             var brush1 = d3.svg.brush()
                          .x(self.xAxisScale)
-                         .on("brush", brushmove)
+                         // .on("brush", brushmove)
                          .on('brushend',brushend);
 
             var brush2 = d3.svg.brush()
                          .y(self.yAxisScale)
-                         .on("brush", brushmove)
+                         // .on("brush", brushmove)
                          .on('brushend',brushend);
 //scales and brushes END
 
@@ -685,6 +701,7 @@ define([
                 }
 
                 function brushend() {
+                  brushmove();
                   if (brush1.empty() && brush2.empty()) d3.selectAll(".grid").style("opacity", 1);
                 }
 //change opacity when brushing END

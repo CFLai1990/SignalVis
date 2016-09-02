@@ -21,7 +21,6 @@ define([
                 "snr":{name: "signalnoise", type: "int", norm: true},
                 "carriernoise":{name: "carriernoise", type: "int", norm: true},
                 "dbm":{name: "scopedbm", type: "int", norm: true},
-                "timeDate": {name: null, type: "int", norm: false},
                 "count":{name: null, type: "int", norm: true},
                 "Lasttime":{name: null, type: null, norm: null},
                 "Modulationmode":{name: "mode", type: "category", norm: true},
