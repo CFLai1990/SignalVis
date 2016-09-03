@@ -22,6 +22,7 @@ define([
         {
              var self = this;
              options = options || {};
+             self.listenTo(Variables, "clearAll", self.clearAll);
              self.listenTo(self, "test:everything_done", self.specDiagram);
              self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                   console.log(Variables.get("mode"));
@@ -29,6 +30,7 @@ define([
                         self.transition_data(filterSignals);
                   }
           	 });
+             self.setTimer();
         },
 
         specDiagram: function(){
@@ -177,6 +179,9 @@ define([
                 .attr('fill','#fb9235');
 
             function mousemove() {
+                if(!self.checkTimer()){
+                  return;
+                }
                 var x_fre = self.x_line.invert(d3.mouse(this)[0]);
                 var y_scope = self.y_line.invert(d3.mouse(this)[1]);
                 self.timeFocus_line.attr("transform", "translate(" + d3.mouse(this)[0] + "," + 0 + ")")
@@ -320,13 +325,34 @@ define([
             return t_min;
         },
 
+        setTimer: function(){
+          var self = this;
+          clearInterval(self["timer"]);
+          self["motion"] = false;
+          self["timer"] = setInterval(function(){
+            self["motion"] = true;
+          }, 300);
+        },
+
+        checkTimer: function(){
+          if(!this["motion"]){
+            return false;
+          }
+          this["motion"] = false;
+          return true;
+        },
+
+        clearAll: function () {
+          this.setTimer();
+        },
+
         onShow: function()
         {
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
             self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: 70};
             self.chartWidth = t_width - self.margin.left - self.margin.right;
-            self.chartHeight = t_height * 0.57;
+            self.chartHeight = t_height * 0.55;
             self.have_zoomin = 0;
 //useful variables
             var aggCount_old = Datacenter.get("aggCount");
@@ -447,6 +473,9 @@ define([
                       return self.colorScale(t_transform(d.value));
              })
              .on("mouseover", function(d) {
+                  if(!self.checkTimer()){
+                    return;
+                  }
                  d3.select(this).style("stroke","black");
 
                  var grid_x_st = self.xAxisScale.invert(w*d.gridcol);
@@ -627,6 +656,9 @@ define([
             }
 
             function mousemove() {
+              if(!self.checkTimer()){
+                return;
+              }
               var y_time = self.yAxisScale.invert(d3.mouse(this)[1]);
               self.timeFocus.attr("transform", "translate(" + 0 + "," + d3.mouse(this)[1] + ")");
               self.timeFocus.select("text").text(y_time.toTimeString().substr(0,8));

@@ -379,12 +379,6 @@ define([
 //Brush
             self.brush = d3.svg.brush()
                                     .x(self.xAxisScale)
-                                    .on("brushstart", function(){
-
-                                    })
-                                    .on("brush", function() {
-
-                                    })
                                     .on("brushend", function(){
                                         var filterRangeName = self.model.get("filterRangeName");
                                         if(self.brush.empty()) {
@@ -442,7 +436,7 @@ define([
                                                 brushRange.push(extent[0]);
                                                 brushRange.push(extent[1]);
                                             }
-                                            console.log(filterRangeName, brushRange);
+                                            console.log("Filter: ", filterRangeName, brushRange);
                                             Variables.setFilterRange(filterRangeName, brushRange);
                                         }
                                     });

@@ -38,6 +38,9 @@ define([
                 self.listenTo(Variables, "updateFilter",  function(model){
                         self.updateMidTexts();
                 });
+                self.listenTo(Variables, "clearFilter", function(){
+                    self.updateMidTexts();
+                });
                 self.listenTo(Datacenter, "updateFilterCount", function(v_count){
                         self.updateCountText(v_count);
                 })
@@ -129,8 +132,14 @@ define([
                                     " ~ " + t_range[1].toFixed(3);
                                 break;
                                 case "time":
-                                    rangeText = new Date(t_range[0]).toTimeString().substring(0,8) +
-                                    " ~ " + new Date(t_range[1]).toTimeString().substring(0,8);
+                                    var t_start = new Date(t_range[0]), t_end = new Date(t_range[1]);
+                                    t_start = t_start.toDateString().substring(4,10) + " " +
+                                        t_start.toTimeString().substring(0,8);
+                                    t_end = t_end.toDateString().substring(4,10) + " " +
+                                        t_end.toTimeString().substring(0,8);
+                                    rangeText = t_start + " ~ " + t_end;
+                                    // rangeText = new Date(t_range[0]).toTimeString().substring(0,8) +
+                                    // " ~ " + new Date(t_range[1]).toTimeString().substring(0,8);
                                 break;
                             }
                             this.$el.find("#"+t_atobj.text).text(rangeText);

@@ -87,9 +87,11 @@ function pixelmap(v_callback, v_parameters){
 function queryBC(v_query, v_aggr, v_allCondition, v_callback){
     var v_sheet = v_allCondition.table, v_conditions = v_allCondition.condition,
     v_dimensions = v_conditions.dimensions, v_glyphs = v_conditions.glyphs,
-    v_parameters = v_allCondition.extra;
+    v_parameters = v_allCondition.extra, t_zooming = v_conditions.zooming, 
+    t_hd = v_conditions.hd;
     var t0_length = 0, t_ratio = v_conditions.ratio;
-    var t_attrs = v_conditions.return, t_dfs = [], t_barcharts = {}, t_ranges = {}, t_init = false, t_layout = null;
+    var t_attrs = v_conditions.return, t_dfs = [], t_barcharts = {}, t_ranges = {}, 
+    t_layout = null;
     var t_aggr = function(v_condition){
         var t_df = Q.defer();
         v_aggr(v_sheet, v_condition, function(v_data){
@@ -121,7 +123,6 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                             t_ranges[tk] = v_range;
                             if(!t_range){
                                 t_range = v_range;
-                                t_init = true;
                             }
                             var t_binR = (t_range[1] - t_range[0]) / t_num, t_bins = {};
                             _.each(tt_data, function(v_d){
@@ -157,14 +158,19 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
         var t_dt = null, t_df0 = Q.defer();
         Q.all(t_dfs).done(
             function(){
-                if(!t_init){
+                if(t_zooming || t_hd){
                     var tt_df = Q.defer();
-                    var t_return = {'_id':0, 'timeDate': 1, 'freq': 1, 'baud': 1};
-                    for(var i in v_dimensions){
-                        t_return[v_dimensions[i]] = 1;
+                    var t_return = {'_id':0};
+                    if(t_zooming){
+                        t_return = {'_id': 0, 'timeDate': 1, 'freq': 1, 'baud': 1};
+                        for(var i in v_glyphs){
+                            t_return[i] = 1;
+                        }
                     }
-                    for(var i in v_glyphs){
-                        t_return[i] = 1;
+                    if(t_hd){
+                        for(var i in v_dimensions){
+                            t_return[v_dimensions[i]] = 1;
+                        }
                     }
                     v_query(v_sheet, {condition: v_conditions.condition, return: t_return}, function(v_data){
                         tt_df.resolve(v_data);
@@ -176,26 +182,26 @@ function queryBC(v_query, v_aggr, v_allCondition, v_callback){
                             t_dt = [];
                             t_layout = null;
                         }else{
+                            if(t_zooming){
                             t_dt = _.map(v_data, function(vv_d){
-                                var tt_d = {};
-                                tt_d['timeDate'] = vv_d['timeDate'];
-                                tt_d['freq'] = vv_d['freq'];
-                                tt_d['baud'] = vv_d['baud'];
-                                if(vv_d['scope']){
-                                    tt_d['scope'] = vv_d['scope']
-                                }
-                                if(vv_d['dbm']){
-                                    tt_d['dbm'] = vv_d['dbm']
-                                }
-                                if(vv_d['carriernoise']){
-                                    tt_d['carriernoise'] = vv_d['carriernoise'];
-                                }
-                                if(vv_d['snr']){
-                                    tt_d['snr'] = vv_d['snr'];
-                                }
-                                return tt_d;});
-                            console.log(v_data[0]);
-                            console.log(t_dt[0]);
+                                    var tt_d = {};
+                                    tt_d['timeDate'] = vv_d['timeDate'];
+                                    tt_d['freq'] = vv_d['freq'];
+                                    tt_d['baud'] = vv_d['baud'];
+                                    if(vv_d['scope']){
+                                        tt_d['scope'] = vv_d['scope']
+                                    }
+                                    if(vv_d['dbm']){
+                                        tt_d['dbm'] = vv_d['dbm']
+                                    }
+                                    if(vv_d['carriernoise']){
+                                        tt_d['carriernoise'] = vv_d['carriernoise'];
+                                    }
+                                    if(vv_d['snr']){
+                                        tt_d['snr'] = vv_d['snr'];
+                                    }
+                                    return tt_d;});
+                            }
                             var t_array = [];
                             for(var i in v_dimensions){
                                 var tt_name = v_dimensions[i];

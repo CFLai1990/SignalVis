@@ -209,7 +209,7 @@
             // }
             var tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
-            self.getBarcharts({}, tt_tds, true);
+            self.getBarcharts({}, tt_tds, false, false);
             var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
             self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
@@ -398,8 +398,11 @@
             var self = this;
             var filterRanges = Variables.get("filterRanges"),
             t_attrs = Config.get("nameList"), t_null = true;
-            console.time(1);
-            var filters = [], t_keys = d3.set(_.keys(filterRanges));
+            // console.time(1);
+            var filters = [], t_keys = d3.set(_.keys(filterRanges)), t_Zooming = false;
+            if(filterRanges["timeDate"] || filterRanges["midfre"]){
+                t_Zooming = true;
+            }
             for(var i in t_attrs){
                 if(!t_keys.has(i)){
                     continue;
@@ -441,8 +444,9 @@
                         }
                     }
                 }
-                self.getBarcharts(t_condition, v_df);
-                console.timeEnd(1);
+                console.log("Zooming: " + t_Zooming);
+                self.getBarcharts(t_condition, v_df, t_Zooming, true);
+                // console.timeEnd(1);
             }
         },
 
@@ -451,7 +455,7 @@
             if(!t_detail){
                 return;
             }
-            console.time(2);
+            // console.time(2);
             var filterSignals = Variables.get("filterSignals");
             var zoominFirsttimeFilterRange = Variables.get("zoominFirsttimeFilterRange");
             var zoominMidfreFilterRange = Variables.get("zoominMidfreFilterRange");
@@ -489,14 +493,14 @@
                 Variables.set("detailSignals",null);
                 Variables.trigger("changeDetailSignals");
             }
-            console.timeEnd(2);
+            // console.timeEnd(2);
         },
 
         querySpectrum: function(v_opts, v_callback){
             var v_frame = v_opts.frame_num, v_time = v_opts.time, v_scope = v_opts.scope;
             var self = this, v_df = $.Deferred(), v_return = {};
             var t_collection = Config.getData("spectrum");
-            console.time(3);
+            // console.time(3);
             if(t_collection){
                 v_return[v_scope] = 1;
                 self.queryFromDB("query", {
@@ -539,7 +543,7 @@
                             condition: {"frameNum": v_frame},
                             return: {'scope': 1, 'frequency': 1, '_id': 0},
                         }, function(v_d){
-                            console.timeEnd(3);
+                            // console.timeEnd(3);
                             v_callback(v_d);
                             //handle spectrum data
                     }, v_df1, {
@@ -552,7 +556,7 @@
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.getData("dataTable");
             $.ajax({
-                url: "/query?"+JSON.stringify({
+                url: "/SignalVis/query?"+JSON.stringify({
                     table: t_table,
                     condition: v_condition,
                     command: v_command,
@@ -570,7 +574,7 @@
             });
         },
 
-        getBarcharts: function(v_condition, v_df, v_init){
+        getBarcharts: function(v_condition, v_df, v_zooming, v_hd){
             var self = this, filterSignals = [], t_list = Config.get("nameList");
             var t_onlyPr = self.get("onlyProjection");
             var t_return, t_dims;
@@ -588,9 +592,11 @@
                     glyphs: t_glyphs,
                     onlyProjection: t_onlyPr,
                     ratio: Config.get("projection")["SampleRate"],
+                    zooming: v_zooming,
+                    hd: v_hd,
                 };
             self.queryFromDB("queryBC", t_condition, function(v_data){
-                if(!v_init){
+                if(v_zooming){
                     var t_data = v_data.data;
                     var t_names = {};
                     for(var i in t_data[0]){
@@ -613,6 +619,7 @@
                         }
                         filterSignals.push(t_d);
                     }
+                    Variables.set("filterSignals",filterSignals);
                 }
                 if(v_data.count > 0){
                     self.updateBarcharts(v_data.barcharts, v_data.range);
@@ -620,12 +627,8 @@
                 }else{
                     Variables.trigger("clearFilter");
                 }
-                if(!v_init){
-                    Variables.set("filterSignals",filterSignals);
-                    self.trigger("updateFilterCount", v_data.count);
-                }else{
-                    Datacenter.set("signalNum",v_data.count);
-                }
+                Datacenter.set("signalNum",v_data.count);
+                self.trigger("updateFilterCount", v_data.count);
                 Variables.trigger("updateFilter");
             }, v_df, t_return.parameters);
             if(t_onlyPr){
@@ -636,7 +639,7 @@
         getBCAttributes: function(){
             var self = this, t_list = Config.get("barchart").list,
             t_bc = self.get("barcharts"), t_attrs = Config.get("attrs");
-            var t_r = {}, t_return = {'id': 1, '_id': 0}, t_pm = {};
+            var t_r = {}, t_return = {'_id': 0}, t_pm = {};
             for(var i in t_list){
                 var t_name = t_list[i];
                 var t_cate = (t_attrs[t_name].type == "category"), t_attr = t_attrs[t_name].attr;
@@ -661,7 +664,11 @@
         },
 
         getGlyphs: function (){
-            var self = this, t_bc = self.get("barcharts"), t_result = {};
+            var self = this, t_detail = self.get("detailSignals");
+            if(!t_detail){
+                return;
+            }
+            var t_bc = self.get("barcharts"), t_result = {};
             if(t_bc){
                 if(t_bc["scope"]){
                     t_result["scope"] = 1;
