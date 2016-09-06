@@ -90,44 +90,44 @@ define([
     		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
     		      .style('stroke-width',.5)
-    		      .style("cursor","pointer");
-    		      // .on("mouseover",function(d){
-    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      // 	  line_showTooltip(x0,y0);
-    		      // })
-    		      // .on("mouseout",function(){
-    		      // 	  line_hideTooltip();
-    		      // });
-
-            self.svg_line.selectAll(".signalPoint")
-              .data(filterData)
-              .enter()
-              .append("path")
-              .attr("class", "signalPoint")
-              .attr("d", function(d){
-                var x_pos = self.x_line(d.midfre);
-                var y_pos = self.y_line(d.scopedbm);
-                var width_r = bandwidth_scale(d.bandwidth)/2;
-                var height_r = noise_scale(d.signalnoise)/2;
-
-                return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
-              })
-              .style("stroke-width", .2)
-              .style("stroke", "white")
-              .style("fill", "#1d91c0")
-              .style('fill-opacity',.5)
-              .style("cursor","pointer")
+    		      .style("cursor","pointer")
     		      .on("mouseover",function(d){
-    		      	var x0 = self.x_line(d.midfre),
-    		      		y0 = self.y_line(d.scopedbm),
-                  a0 = d.bandwidth,
-                  b0 = d.signalnoise;
-    		      	line_showTooltip(x0,y0,a0,b0);
+    		      	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      	  line_showTooltip(x0,y0);
     		      })
     		      .on("mouseout",function(){
-    		      	line_hideTooltip();
+    		      	  line_hideTooltip();
     		      });
+
+            // self.svg_line.selectAll(".signalPoint")
+            //   .data(filterData)
+            //   .enter()
+            //   .append("path")
+            //   .attr("class", "signalPoint")
+            //   .attr("d", function(d){
+            //     var x_pos = self.x_line(d.midfre);
+            //     var y_pos = self.y_line(d.scopedbm);
+            //     var width_r = bandwidth_scale(d.bandwidth)/2;
+            //     var height_r = noise_scale(d.signalnoise)/2;
+
+            //     return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
+            //   })
+            //   .style("stroke-width", .2)
+            //   .style("stroke", "white")
+            //   .style("fill", "#1d91c0")
+            //   .style('fill-opacity',.5)
+            //   .style("cursor","pointer")
+    		      // .on("mouseover",function(d){
+    		      // 	var x0 = self.x_line(d.midfre),
+    		      // 		y0 = self.y_line(d.scopedbm),
+            //       a0 = d.bandwidth,
+            //       b0 = d.signalnoise;
+    		      // 	line_showTooltip(x0,y0,a0,b0);
+    		      // })
+    		      // .on("mouseout",function(){
+    		      // 	line_hideTooltip();
+    		      // });
 
 //时间定位线
             self.timeFocus_line = self.svg_line.append("g")
