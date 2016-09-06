@@ -18,6 +18,10 @@ define([
             //
             "mode":"zoomout", // zoomout or zoomin
             "filterRanges": {},
+            "pixelRanges": {
+                "timeRange": null,
+                "midfreRange": null,
+            },
 
             "zoominFirsttimeFilterRange":null,
             "zoominMidfreFilterRange":null,
@@ -94,6 +98,10 @@ define([
                 "detailSignals":null,
                 'filterSignals':null,
                 "dimensions": {},
+                "pixelRanges": {
+                    "timeRange": null,
+                    "midfreRange": null,
+                },
             });
         },
 

@@ -104,13 +104,24 @@ function query(v_sheet, v_conditions, callback){
 		// console.log("      DB: Connected correctly to server");
 		var collection;
 		collection = db.collection(v_sheet);
-		collection.find(v_conditions.condition, v_conditions.return).toArray(function(err, docs) {
-			assert.equal(err, null);
-			// console.log("      DB: The following records are found");
-			// console.log(docs);
-			callback(docs);
-			db.close();
-		});
+		if(v_conditions.limit){	
+			collection.find(v_conditions.condition, v_conditions.return).limit(v_conditions.limit)
+			.toArray(function(err, docs) {
+				assert.equal(err, null);
+				// console.log("      DB: The following records are found");
+				// console.log(docs);
+				callback(docs);
+				db.close();
+			});
+		}else{			
+			collection.find(v_conditions.condition, v_conditions.return).toArray(function(err, docs) {
+				assert.equal(err, null);
+				// console.log("      DB: The following records are found");
+				// console.log(docs);
+				callback(docs);
+				db.close();
+			});
+		}
 	});
 }
 
