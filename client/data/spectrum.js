@@ -1,1 +1,2 @@
-db.Spectrum.createIndex({"frameNum": 1});
+var collection = "Spectrum";
+db.getCollection(collection).createIndex({"frameNum": 1});

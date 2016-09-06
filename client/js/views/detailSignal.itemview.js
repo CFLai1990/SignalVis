@@ -81,6 +81,7 @@ define([
 
     //glyph scale
                 var t_ranges = self.model.get("ranges");
+                console.log(t_ranges);
                 self.bandwidthScale = d3.scale.linear()
                                                         .domain(t_ranges["bandwidth"])
                                                         .range([2,40]);
@@ -140,14 +141,17 @@ define([
                                 var percentage = self.carriernoiseScale(d.carriernoise);
                                 var centralX = self.xScale(d.firsttime);
                                 var halfWidth =  self.scopeScale(d.scope);
+                                if(isNaN(centralX - halfWidth * percentage)){
+                                    console.log(centralX, halfWidth, d);
+                                }
                                 return centralX  -  halfWidth * percentage;
                             })
                             .attr("y", function(d) {
-                                // var percentage = self.carriernoiseScale(d.carriernoise);
+                                var percentage = self.carriernoiseScale(d.carriernoise);
                                 var centralY = self.yAxisScale(d.midfre);
-                                // var halfHeight =  self.bandwidthScale(d.bandwidth);
-                                // return centralY  -  halfHeight * percentage;
-                                return centralY - 1.5;
+                                var halfHeight =  self.bandwidthScale(d.bandwidth);
+                                return centralY  -  halfHeight * percentage;
+                                // return centralY - 1.5;
                             })
                             .attr("width", function(d) {
                                 var percentage = self.carriernoiseScale(d.carriernoise);
@@ -155,10 +159,10 @@ define([
                                 return 2 * halfWidth * percentage;
                             })
                             .attr("height", function(d) {
-                                // var percentage = self.carriernoiseScale(d.carriernoise);
-                                // var halfHeight =  self.bandwidthScale(d.bandwidth);
-                                // return 2 * halfHeight * percentage;
-                                return 3;
+                                var percentage = self.carriernoiseScale(d.carriernoise);
+                                var halfHeight =  self.bandwidthScale(d.bandwidth);
+                                return 2 * halfHeight * percentage;
+                                // return 3;
                             })
                             .attr("class","carriernoiseBar");
 

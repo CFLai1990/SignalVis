@@ -43,22 +43,18 @@ define([
             "data": {
                 "950MHz": {
                     "dataTable": "SignalDB",
-                    "localPath": "data/950MHz.csv",
                     "spectrum": null,
                 },
                 "signal": {
                     "dataTable": "SignalDB0",
-                    "localPath": "data/signal.csv",
                     "spectrum": "Spectrum",
                 },
                 "signaldata1": {
                     "dataTable": "SignalDB1",
-                    "localPath": "data/signaldata1.csv",
                     "spectrum": null,
                 },
                 "signaldata2": {
                     "dataTable": "SignalDB2",
-                    "localPath": "data/signaldata2.csv",
                     "spectrum": null,
                 },
             },

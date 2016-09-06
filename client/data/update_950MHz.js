@@ -1,4 +1,3 @@
-load("../bower_components/numeric.min.js");
 var collection = "SignalDB";
 db.getCollection(collection).find( { time : { $exists : true } } ).forEach( function (d) {
 	if(d.timeDate){
@@ -28,21 +27,30 @@ db.getCollection(collection).find( { time : { $exists : true } } ).forEach( func
   	db.getCollection(collection).save(d); 
 });
 print("Time updated!");
-db.SignalDB.createIndex({
+db.getCollection(collection).createIndex({
 	"freq": 1,
 	"baud": 1,
 	"scope": 1,
 	"carriernoise": 1,
 	"timeDate": 1,
+});
+db.getCollection(collection).createIndex({
 	"Modulationmode": 1,
 	"Modulationrate": 1,
 	"CsTran": 1,
 	"mask": 1,
 	"SignalType": 1,
 });
+db.getCollection(collection).createIndex({
+	"freq": 1,
+	"timeDate": 1,
+});
 print("Index created!");
 var t_attrs = {}, t_id = 0, t_dict = {};
 db.getCollection(collection).find({id:1}).forEach(function(d){
+	if(d["normtimeDate"]){
+		return;
+	}
 	for(var i in d){
 		if(i == "time" || i == "id" || i == "_id" || i.indexOf("norm")>=0){
 			continue;
@@ -103,6 +111,9 @@ db.getCollection(collection).find({id:1}).forEach(function(d){
 	}
 });
 db.getCollection(collection).find({}).forEach(function(d){
+	if(d["normtimeDate"]){
+		return;
+	}
 	for(var i in d){
 		if(t_attrs[i] && t_attrs[i].length > 0){
 			var t_v = d[i];

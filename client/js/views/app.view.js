@@ -55,7 +55,9 @@ define([
                     $("#loading").addClass("hidden");
                 }
             });
-            self.bindInteractions();
+            var t_df = $.Deferred();
+            self.addLoaders(t_df);
+            $.when(t_df).done(self.bindInteractions());
         },
 
         loaded: function() {
@@ -72,6 +74,19 @@ define([
 
         onShow: function(){
 
+        },
+
+        addLoaders: function (v_df){
+            var t_data = Config.get("data");
+            for(var i in t_data){
+                d3.select("#loader_ul")
+                .append("li")
+                .attr("id", i)
+                .attr("class", "dataLoader")
+                .append("a")
+                .text(" " + i);
+            }
+            v_df.resolve();
         },
 
         bindInteractions: function(){
