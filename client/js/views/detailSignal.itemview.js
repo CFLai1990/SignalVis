@@ -22,8 +22,8 @@ define([
         {
             var self = this;
             options = options || {};
-            self.listenTo(Variables,"change:detailSignals", function(model, detailSignals){
-                console.log(detailSignals);
+            self.listenTo(Variables,"changeDetailSignals", function(){
+                var detailSignals = Variables.get("detailSignals");
                 if(detailSignals) {
                     var zoominFirsttimeFilterRange = Variables.get("zoominFirsttimeFilterRange");
                     var zoominMidfreFilterRange = Variables.get("zoominMidfreFilterRange");
@@ -143,9 +143,9 @@ define([
                                 return centralX  -  halfWidth * percentage;
                             })
                             .attr("y", function(d) {
-                                var percentage = self.carriernoiseScale(d.carriernoise);
+                                // var percentage = self.carriernoiseScale(d.carriernoise);
                                 var centralY = self.yAxisScale(d.midfre);
-                                var halfHeight =  self.bandwidthScale(d.bandwidth);
+                                // var halfHeight =  self.bandwidthScale(d.bandwidth);
                                 // return centralY  -  halfHeight * percentage;
                                 return centralY - 1.5;
                             })
@@ -155,8 +155,8 @@ define([
                                 return 2 * halfWidth * percentage;
                             })
                             .attr("height", function(d) {
-                                var percentage = self.carriernoiseScale(d.carriernoise);
-                                var halfHeight =  self.bandwidthScale(d.bandwidth);
+                                // var percentage = self.carriernoiseScale(d.carriernoise);
+                                // var halfHeight =  self.bandwidthScale(d.bandwidth);
                                 // return 2 * halfHeight * percentage;
                                 return 3;
                             })

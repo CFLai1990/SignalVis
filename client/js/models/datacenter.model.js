@@ -209,7 +209,7 @@
             // }
             var tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
-            self.getBarcharts({}, tt_tds, true);
+            self.getBarcharts({}, tt_tds, false, false);
             var t_attrs = t_pxl.attrs, tt_tds = $.Deferred();
             t_tds.push(tt_tds.promise());
             self.setPixelMap(t_attrs[0].name, t_attrs[0].attr,
@@ -335,18 +335,24 @@
             var bandwidthRange = [];
             var scopeRange = [];
             var carriernoiseRange = [];
-            var t_bandwidth = self.get("barcharts")["bandwidth"];
+            var t_bc = self.get("barcharts");
+            var t_bandwidth = t_bc["bandwidth"];
             bandwidthRange = t_bandwidth?t_bandwidth.get("xRange"):null;
-            var t_scope = self.get("barcharts")["scope"], t_dbmscope = self.get("barcharts")["scopedbm"];
+            var t_scope = t_bc["scope"], t_dbmscope = t_bc["scopedbm"];
             if(t_scope){
                 scopeRange = t_scope.get("xRange");
+            }else{
+                if(t_dbmscope){
+                    scopeRange = t_dbmscope.get("xRange");
+                }
             }
-            if(t_dbmscope){
-                scopeRange = t_dbmscope.get("xRange");
-            }
-            var t_carrier = self.get("barcharts")["carriernoise"];
+            var t_carrier = t_bc["carriernoise"], t_snr = t_bc["signalnoise"];
             if(t_carrier){
                 carriernoiseRange = t_carrier.get("xRange");
+            }else{
+                if(t_snr){
+                    carriernoiseRange = t_snr.get("xRange");
+                }
             }
             if(bandwidthRange.length == 0 || scopeRange.length == 0 || carriernoiseRange.length == 0){
                 this.set("detailSignals", null);
@@ -392,8 +398,11 @@
             var self = this;
             var filterRanges = Variables.get("filterRanges"),
             t_attrs = Config.get("nameList"), t_null = true;
-            console.time(1);
-            var filters = [], t_keys = d3.set(_.keys(filterRanges));
+            // console.time(1);
+            var filters = [], t_keys = d3.set(_.keys(filterRanges)), t_Zooming = false;
+            if(filterRanges["timeDate"] || filterRanges["midfre"]){
+                t_Zooming = true;
+            }
             for(var i in t_attrs){
                 if(!t_keys.has(i)){
                     continue;
@@ -435,8 +444,9 @@
                         }
                     }
                 }
-                self.getBarcharts(t_condition, v_df);
-                console.timeEnd(1);
+                console.log("Zooming: " + t_Zooming);
+                self.getBarcharts(t_condition, v_df, t_Zooming, true);
+                // console.timeEnd(1);
             }
         },
 
@@ -445,7 +455,7 @@
             if(!t_detail){
                 return;
             }
-            console.time(2);
+            // console.time(2);
             var filterSignals = Variables.get("filterSignals");
             var zoominFirsttimeFilterRange = Variables.get("zoominFirsttimeFilterRange");
             var zoominMidfreFilterRange = Variables.get("zoominMidfreFilterRange");
@@ -464,27 +474,33 @@
                     "bandwidth": "bandwidth",
                     "carriernoise": "carriernoise",
                     "signalnoise": "carriernoise",
+                    "firsttime": "firsttime",
+                    "midfre": "midfre",
                 }
                 var t_result = _.map(detailSignals, function(v_d){
                     var t_d = {};
                     for(var i in v_d){
-                        t_d[t_namelist[i]] = v_d[i];
+                        if(t_namelist[i]){
+                            t_d[t_namelist[i]] = v_d[i];
+                        }
                     }
                     return t_d;
                 })
                 Variables.set("detailSignals",t_result);
+                Variables.trigger("changeDetailSignals");
             }
             else {
                 Variables.set("detailSignals",null);
+                Variables.trigger("changeDetailSignals");
             }
-            console.timeEnd(2);
+            // console.timeEnd(2);
         },
 
         querySpectrum: function(v_opts, v_callback){
             var v_frame = v_opts.frame_num, v_time = v_opts.time, v_scope = v_opts.scope;
             var self = this, v_df = $.Deferred(), v_return = {};
             var t_collection = Config.getData("spectrum");
-            console.time(3);
+            // console.time(3);
             if(t_collection){
                 v_return[v_scope] = 1;
                 self.queryFromDB("query", {
@@ -493,9 +509,24 @@
                             '$lte': v_time[1] + 8 * 3600 * 1000,
                         }
                     },
-                    return: _.extend(v_return, {'_id': 0, 'freq': 1}),
+                    return: _.extend(v_return, {
+                        '_id': 0,
+                        'freq': 1, 
+                        'scope': 1,
+                        'dbm': 1,
+                        // 'baud': 1,
+                        // 'snr': 1,
+                        // 'carriernoise': 1,
+                    }),
                 }, function(v_d){
-                    var t_result = [], t_namelist = {freq: "midfre"};
+                    var t_result = [], t_namelist = {
+                        freq: "midfre",
+                        scope: "scope",
+                        dbm: "scope",
+                        baud: "bandwidth",
+                        snr: "signalnoise",
+                        carriernoise: "signalnoise",
+                    };
                     t_namelist[v_scope] = "scope";
                     for(var i in v_d){
                         var t_r = {}, vv_d = v_d[i];
@@ -512,20 +543,20 @@
                             condition: {"frameNum": v_frame},
                             return: {'scope': 1, 'frequency': 1, '_id': 0},
                         }, function(v_d){
-                            console.timeEnd(3);
+                            // console.timeEnd(3);
                             v_callback(v_d);
                             //handle spectrum data
                     }, v_df1, {
                         collection: t_collection,
                     });
-                });       
+                });
             }
         },
 
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
             var t_table = Config.getData("dataTable");
             $.ajax({
-                url: "/query?"+JSON.stringify({
+                url: "/SignalVis/query?"+JSON.stringify({
                     table: t_table,
                     condition: v_condition,
                     command: v_command,
@@ -543,7 +574,7 @@
             });
         },
 
-        getBarcharts: function(v_condition, v_df, v_init){
+        getBarcharts: function(v_condition, v_df, v_zooming, v_hd){
             var self = this, filterSignals = [], t_list = Config.get("nameList");
             var t_onlyPr = self.get("onlyProjection");
             var t_return, t_dims;
@@ -553,15 +584,19 @@
                 t_return = self.getBCAttributes();
             }
             t_dims = self.getDimensions();
+            var t_glyphs = self.getGlyphs();
             var t_condition = {
                     condition: v_condition,
                     return: t_return.attrs,
                     dimensions: t_dims,
+                    glyphs: t_glyphs,
                     onlyProjection: t_onlyPr,
                     ratio: Config.get("projection")["SampleRate"],
+                    zooming: v_zooming,
+                    hd: v_hd,
                 };
             self.queryFromDB("queryBC", t_condition, function(v_data){
-                if(!v_init){
+                if(v_zooming){
                     var t_data = v_data.data;
                     var t_names = {};
                     for(var i in t_data[0]){
@@ -584,6 +619,7 @@
                         }
                         filterSignals.push(t_d);
                     }
+                    Variables.set("filterSignals",filterSignals);
                 }
                 if(v_data.count > 0){
                     self.updateBarcharts(v_data.barcharts, v_data.range);
@@ -591,12 +627,9 @@
                 }else{
                     Variables.trigger("clearFilter");
                 }
-                if(!v_init){
-                    Variables.set("filterSignals",filterSignals);
-                    self.trigger("updateFilterCount", v_data.count);
-                }else{
-                    Datacenter.set("signalNum",v_data.count);
-                }
+                Datacenter.set("signalNum",v_data.count);
+                self.trigger("updateFilterCount", v_data.count);
+                Variables.trigger("updateFilter");
             }, v_df, t_return.parameters);
             if(t_onlyPr){
                 self.set("onlyProjection", false);
@@ -606,7 +639,7 @@
         getBCAttributes: function(){
             var self = this, t_list = Config.get("barchart").list,
             t_bc = self.get("barcharts"), t_attrs = Config.get("attrs");
-            var t_r = {}, t_return = {'id': 1, '_id': 0}, t_pm = {};
+            var t_r = {}, t_return = {'_id': 0}, t_pm = {};
             for(var i in t_list){
                 var t_name = t_list[i];
                 var t_cate = (t_attrs[t_name].type == "category"), t_attr = t_attrs[t_name].attr;
@@ -626,6 +659,29 @@
             var t_result = [];
             for(var i in t_dims){
                 t_result.push("norm" + t_attrs[t_dims[i]].attr);
+            }
+            return t_result;
+        },
+
+        getGlyphs: function (){
+            var self = this, t_detail = self.get("detailSignals");
+            if(!t_detail){
+                return;
+            }
+            var t_bc = self.get("barcharts"), t_result = {};
+            if(t_bc){
+                if(t_bc["scope"]){
+                    t_result["scope"] = 1;
+                }
+                if(t_bc["scopedbm"]){
+                    t_result["dbm"] = 1;
+                }
+                if(t_bc["carriernoise"]){
+                    t_result["carriernoise"] = 1;
+                }
+                if(t_bc["signalnoise"]){
+                    t_result["snr"] = 1;
+                }
             }
             return t_result;
         },
@@ -656,7 +712,7 @@
                     if(!t_bc){
                         console.log("no " + t_name);
                     }else{
-                        t_bc.update(v_bc[i]);
+                        t_bc.update(v_bc[i], v_range[i]);
                     }
                 }
             }

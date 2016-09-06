@@ -21,7 +21,6 @@ define([
                 "snr":{name: "signalnoise", type: "int", norm: true},
                 "carriernoise":{name: "carriernoise", type: "int", norm: true},
                 "dbm":{name: "scopedbm", type: "int", norm: true},
-                "timeDate": {name: null, type: "int", norm: false},
                 "count":{name: null, type: "int", norm: true},
                 "Lasttime":{name: null, type: null, norm: null},
                 "Modulationmode":{name: "mode", type: "category", norm: true},
@@ -128,8 +127,8 @@ define([
                 "size": null,
             },
             "projection": {
-                "SampleRate": [1, 1, 0.9, 0.6, 0.3, 0.1, 0.05, 0.01, 0.01],
-                "opacity": [0.9, 0.9, 0.6, 0.4, 0.3, 0.3, 0.3, 0.2, 0.2],
+                "SampleRate": [1, 1, 0.9, 0.6, 0.1, 0.1, 0.05, 0.01, 0.01],
+                "opacity": [0.9, 0.9, 0.6, 0.5, 0.5, 0.3, 0.3, 0.2, 0.2],
             },
             "dictionary": null,
         },

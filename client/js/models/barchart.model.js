@@ -25,6 +25,7 @@ define([
             "yRange": null,
             "totalBins":null, //[]
             "filterBins":null,
+            "filterRange": null,
             "mode":"zoomout", //"zoomout" or "zoomin"
             "dictionary": null,
             "category": false,
@@ -83,7 +84,7 @@ define([
             self.set(t_obj);
         },
 
-        update: function(v_bins){
+        update: function(v_bins, v_range){
             var self = this, t_bins = [];
             for(var i = 0; i < self.get("numOfBins") - 1; i++){
                 t_bins.push(0);
@@ -103,6 +104,7 @@ define([
                 }
             }
             self.set("filterBins", t_bins);
+            self.set("filterRange", v_range);
         },
 
         settleCategories: function(){
@@ -132,6 +134,7 @@ define([
         clearFilter:function() {
             var self = this;
             self.set("filterBins", null);
+            self.set("filterRange", null);
         },
 
         clearAll: function(){

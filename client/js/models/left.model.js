@@ -32,7 +32,6 @@ define([
             //
         },
         initialize: function(options){
-
             var self = this;
             // console.log(options);
             self.set("xModel",options.xModel);

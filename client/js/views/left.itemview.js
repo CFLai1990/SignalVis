@@ -22,6 +22,7 @@ define([
         {
              var self = this;
              options = options || {};
+             self.listenTo(Variables, "clearAll", self.clearAll);
              self.listenTo(self, "test:everything_done", self.specDiagram);
              self.listenTo(Variables,"change:filterSignals", function(model, filterSignals){
                   console.log(Variables.get("mode"));
@@ -29,6 +30,7 @@ define([
                         self.transition_data(filterSignals);
                   }
           	 });
+             self.setTimer();
         },
 
         specDiagram: function(){
@@ -38,6 +40,8 @@ define([
 
             d3.selectAll('.line').remove();
             d3.selectAll('.signalPoint').remove();
+            d3.selectAll('.timeFocus_line').remove();
+            d3.selectAll(".overlay_line").remove();
             //console.log(filterData);
             var t_bcs = Datacenter.get("barcharts");
             var t_scope = t_bcs["scope"], t_scopedbm = t_bcs["scopedbm"];
@@ -72,62 +76,79 @@ define([
     		      .style('fill','none')
     		      .style('stroke-width',.5)
     		      .style("cursor","pointer")
-    		      .on("mouseover",function(d){
-    		      	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      	  line_showTooltip(x0,y0);
-    		      })
-    		      .on("mouseout",function(){
-    		      	  line_hideTooltip();
-    		      });
-		      
+    		      // .on("mouseover",function(d){
+    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      // 	  // line_showTooltip(x0,y0);
+    		      // })
+    		      // .on("mouseout",function(){
+    		      // 	  line_hideTooltip();
+    		      // });
+
     		    self.svg_line.selectAll(".signalPoint")
     		      .data(filterData)
     		      .enter()
     		      .append("circle")
-    		      .attr("class", "signalPoint") 
-    		      .attr("cx", function(d){return self.x_line(d.midfre);})
+    		      .attr("class", "signalPoint")
+    		      .attr("cx", function(d){
+                var t_text = "功率：" + d.scope.toFixed(3) + " dbm " + "中心频率："+ d.midfre.toFixed(3) + "MHz ";
+                $(this)
+                .attr("data-placement","top")
+                .tooltip({
+                    container: '#left',
+                    viewpoint: '#left',
+                    placement: 'top',
+                    title: t_text,
+                });
+                return self.x_line(d.midfre);
+              })
     		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
-    		      .style('stroke-width',.5)
-    		      .style("cursor","pointer")
-    		      .on("mouseover",function(d){
-    		      	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      	  line_showTooltip(x0,y0);
-    		      })
-    		      .on("mouseout",function(){
-    		      	  line_hideTooltip();
-    		      });
-
-            // self.svg_line.selectAll(".signalPoint")
-            //   .data(filterData)
-            //   .enter()
-            //   .append("path")
-            //   .attr("class", "signalPoint")
-            //   .attr("d", function(d){
-            //     var x_pos = self.x_line(d.midfre);
-            //     var y_pos = self.y_line(d.scopedbm);
-            //     var width_r = bandwidth_scale(d.bandwidth)/2;
-            //     var height_r = noise_scale(d.signalnoise)/2;
-
-            //     return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
-            //   })
-            //   .style("stroke-width", .2)
-            //   .style("stroke", "white")
-            //   .style("fill", "#1d91c0")
-            //   .style('fill-opacity',.5)
-            //   .style("cursor","pointer")
+    		      .style('stroke-width',.5);
+    		      // .style("cursor","pointer")
     		      // .on("mouseover",function(d){
-    		      // 	var x0 = self.x_line(d.midfre),
-    		      // 		y0 = self.y_line(d.scopedbm),
-            //       a0 = d.bandwidth,
-            //       b0 = d.signalnoise;
-    		      // 	line_showTooltip(x0,y0,a0,b0);
+    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
+    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
+    		      // 	  line_showTooltip(x0,y0);
     		      // })
     		      // .on("mouseout",function(){
-    		      // 	line_hideTooltip();
+    		      // 	  line_hideTooltip();
     		      // });
+
+            self.svg_line.selectAll(".signalPoint2")
+              .data(filterData)
+              .enter()
+              .append("path")
+              .attr("class", "signalPoint2")
+              .attr("d", function(d, i){
+                if(i == 0){
+                  console.log(self.x_line.domain(), d);
+                }
+                var x_pos = self.x_line(d.midfre);
+                var y_pos = self.y_line(d.scope);
+
+                var width_r = bandwidth_scale(d.bandwidth)/2;
+                var height_r = noise_scale(d.signalnoise)/2;
+
+                return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
+              })
+              .style("stroke-width", .2)
+              .style("stroke", "white")
+              .style("fill", "#1d91c0")
+              .style('fill-opacity',.5)
+              .style("cursor","pointer")
+    		      .on("mouseover",function(d){
+    		      	var x0 = self.x_line(d.midfre),
+
+    		      		y0 = self.y_line(d.scopedbm),
+
+                  a0 = d.bandwidth,
+                  b0 = d.signalnoise;
+    		      	line_showTooltip(x0,y0,a0,b0);
+    		      })
+    		      .on("mouseout",function(){
+    		      	line_hideTooltip();
+    		      });
 
 //时间定位线
             self.timeFocus_line = self.svg_line.append("g")
@@ -169,6 +190,9 @@ define([
                 .attr('fill','#fb9235');
 
             function mousemove() {
+                if(!self.checkTimer()){
+                  return;
+                }
                 var x_fre = self.x_line.invert(d3.mouse(this)[0]);
                 var y_scope = self.y_line.invert(d3.mouse(this)[1]);
                 self.timeFocus_line.attr("transform", "translate(" + d3.mouse(this)[0] + "," + 0 + ")")
@@ -177,7 +201,7 @@ define([
             }
 //时间定位线 END
 
-        		function line_showTooltip(x,y,a,b){
+        		function line_showTooltip(x,y){
                var tooltip_scatter = self.svg_line.append("g")
                   .attr("class", "tooltip_scatter");
 
@@ -186,7 +210,7 @@ define([
                   .attr("x", self.Width_line/3)
                   .attr("y", 10)
                   .attr("fill","#fff")
-                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3) + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
+                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3));// + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
             }
 
          	function line_hideTooltip(){
@@ -225,11 +249,19 @@ define([
                     .attr("class", "point")
                     .attr("r", function(d) { return self.scattersizeScale(d.bandwidth);})
                     .attr("fill",'#00AEEF')
-                    .attr("cx", function(d) { return self.xAxisScale(d.midfre); })
-                    .attr("cy", function(d) { return self.yAxisScale(new Date(d.firsttime)); })
-                    .style('cursor','pointer')
-                    .on('mouseover',function(d){showTooltip(d,this);})
-                    .on('mouseout',function(d){hideTooltip(d,this);});
+                    .attr("cx", function(d) {
+                      var t_text = JSON.stringify(d);
+                      $(this)
+                      .attr("title", t_text)
+                      .attr("data-placement","top")
+                      .tooltip({
+                          container: '#left',
+                      });
+                      return self.xAxisScale(d.midfre); })
+                    .attr("cy", function(d) { return self.yAxisScale(d.firsttime); })
+                    .style('cursor','pointer');
+                    // .on('mouseover',function(d){showTooltip(d,this);})
+                    // .on('mouseout',function(d){hideTooltip(d,this);});
 
              self.mainRegin.transition().duration(500)
                     .select(".x.axis")
@@ -304,13 +336,34 @@ define([
             return t_min;
         },
 
+        setTimer: function(){
+          var self = this;
+          clearInterval(self["timer"]);
+          self["motion"] = false;
+          self["timer"] = setInterval(function(){
+            self["motion"] = true;
+          }, 300);
+        },
+
+        checkTimer: function(){
+          if(!this["motion"]){
+            return false;
+          }
+          this["motion"] = false;
+          return true;
+        },
+
+        clearAll: function () {
+          this.setTimer();
+        },
+
         onShow: function()
         {
             var self = this;
             var t_width = self.$el.width(), t_height = self.$el.height();
-            self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: t_width * 0.05};
+            self.margin = {top: t_height * 0.05, right: t_width * 0.02, bottom: t_height * 0.04, left: 70};
             self.chartWidth = t_width - self.margin.left - self.margin.right;
-            self.chartHeight = t_height * 0.57;
+            self.chartHeight = t_height * 0.55;
             self.have_zoomin = 0;
 //useful variables
             var aggCount_old = Datacenter.get("aggCount");
@@ -329,6 +382,7 @@ define([
             var brush_height = self.chartHeight;
             var time_range = Datacenter.get("timeRange");
             var start_time = time_range[0];
+            var t_days = (time_range[1] - time_range[0] ) / (24*1000*3600);
 //useful variables END
 //scales and brushes
             self.xScale = d3.scale.linear()
@@ -353,21 +407,31 @@ define([
 
             var brush1 = d3.svg.brush()
                          .x(self.xAxisScale)
-                         .on("brush", brushmove)
+                         // .on("brush", brushmove)
                          .on('brushend',brushend);
 
             var brush2 = d3.svg.brush()
                          .y(self.yAxisScale)
-                         .on("brush", brushmove)
+                         // .on("brush", brushmove)
                          .on('brushend',brushend);
 //scales and brushes END
 
             self.mainRegin = self.d3el.append("g")
               .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")")
               .attr("class","mainReginSvg");
+              var t_format;
+              if(t_days >= 7 ){
+                t_format = "%b %d";
+              }else{
+                if(t_days >= 1){
+                  t_format = "%b %d %I:%M";
+                }else{
+                  t_format = "%H:%M:%S";
+                }
+              }
 
             self.xAxis = d3.svg.axis().scale(self.xAxisScale).orient("bottom");
-            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").tickFormat(d3.time.format("%H:%M:%S"));;
+            self.yAxis = d3.svg.axis().scale(self.yAxisScale).orient("left").tickFormat(d3.time.format(t_format));
 //xAxis
             self.mainRegin.append("g")
               .attr("class", "x axis")
@@ -420,6 +484,9 @@ define([
                       return self.colorScale(t_transform(d.value));
              })
              .on("mouseover", function(d) {
+                  if(!self.checkTimer()){
+                    return;
+                  }
                  d3.select(this).style("stroke","black");
 
                  var grid_x_st = self.xAxisScale.invert(w*d.gridcol);
@@ -494,7 +561,7 @@ define([
 		            .attr('fill','#fb9235');
 //时间定位线 END
 //频谱图
-                self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_height * 0.05, left: t_width * 0.05};
+                self.margin_line = {top: t_height * 0.68, right: t_width * 0.02, bottom: t_height * 0.05, left: 70};
                 self.Width_line = self.$el.width() - self.margin_line.left - self.margin_line.right;
                 self.Height_line = t_height * 0.27;
 
@@ -567,7 +634,7 @@ define([
                   .style("fill","#fff")
                   .attr("class","line_title")
                   .text("时间：" + y_time);
-                  
+
                 // var filterData = detailSignals.filter(function(d){
                 //   var timeStamp = new Date(d.firsttime).toTimeString().substr(0,8);
                 //   if(timeStamp == y_time)
@@ -582,7 +649,7 @@ define([
                 if(t_list.indexOf("scopedbm")>=0){
                   t_scope = Config.get("attrs")["scopedbm"].attr;
                 }
-                
+
                 var t_binTime = Datacenter.get("timeRange");
                 t_binTime = (t_binTime[1] - t_binTime[0])/(Config.get("pixel").plansize[1]);
                 var tt_time = new Date(self.yAxisScale.invert(d3.mouse(this)[1])).getTime();
@@ -600,6 +667,9 @@ define([
             }
 
             function mousemove() {
+              if(!self.checkTimer()){
+                return;
+              }
               var y_time = self.yAxisScale.invert(d3.mouse(this)[1]);
               self.timeFocus.attr("transform", "translate(" + 0 + "," + d3.mouse(this)[1] + ")");
               self.timeFocus.select("text").text(y_time.toTimeString().substr(0,8));
@@ -674,6 +744,7 @@ define([
                 }
 
                 function brushend() {
+                  brushmove();
                   if (brush1.empty() && brush2.empty()) d3.selectAll(".grid").style("opacity", 1);
                 }
 //change opacity when brushing END
