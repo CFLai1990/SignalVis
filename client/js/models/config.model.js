@@ -127,6 +127,7 @@ define([
                 "opacity": [0.9, 0.9, 0.6, 0.5, 0.5, 0.3, 0.3, 0.2, 0.2],
             },
             "dictionary": null,
+            "timeshift": 8 * 3600 * 1000,
         },
 
         initialize: function(){
@@ -160,6 +161,15 @@ define([
             var self = this;
             self.set("dictionary", null);
             self.get("barchart").list = null;
+            self.get("pixel").size = null;
+        },
+
+        shiftTime: function (v_time, v_sign){
+            if(v_sign){
+                return v_time + this.get("timeshift");
+            }else{
+                return v_time - this.get("timeshift");
+            }
         },
     }))();
 });

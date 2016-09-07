@@ -22,3 +22,21 @@
         color: #fff;
     }
 }
+
+.loading.middle.foggy .back{
+    opacity: 0.7;
+    -webkit-transition: @myTransition;
+    transition: @myTransition;
+}
+
+.loading.middle .back, .loading.middle .logo{
+    opacity: 0;
+    -webkit-transition: @myTransition;
+    transition: @myTransition;
+}
+
+.loading.middle.foggy .logo{
+    opacity: 1;
+    -webkit-transition: @myTransition;
+    transition: @myTransition;
+}

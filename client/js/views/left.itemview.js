@@ -30,6 +30,8 @@ define([
                         self.transition_data(filterSignals);
                   }
           	 });
+             self.listenTo(Variables, "updatePixelMap", self.updatePixelMap);
+             self.listenTo(Variables, "clearFilter", self.updatePixelMap);
              self.setTimer();
         },
 
@@ -241,6 +243,25 @@ define([
 //时间定位线 END
         },
 
+        updatePixelMap: function (v_map){
+          var self = this;
+          var t_transform = self.transform, t_map, t_color = self.colorScale;
+          if(v_map){
+            self.brush_pixelmap = v_map;
+            t_map = v_map;
+          }else{
+            t_map = self.pixelmap;
+          }
+          self.d3el.selectAll('.grid')
+          .style("fill", function(d) {
+             var t_i = d.gridrow, t_j = d.gridcol, t_d = t_map[t_i][t_j];
+                 if(t_d == 0)
+                   return "#020919";
+                 else
+                   return t_color(t_transform(t_d));
+          });
+        },
+
         transition_data:function(filterSignals)
         {
           var self = this;
@@ -389,11 +410,13 @@ define([
 //useful variables
             var aggCount_old = Datacenter.get("aggCount");
             var aggCount = numeric.transpose(aggCount_old);
+            self.pixelmap = aggCount;
 
             var maxCount = self.max(aggCount);
             var minCount = self.min(aggCount);
             var t_self = function(d){return d;}
             var t_transform = (maxCount - minCount)>100?Math.log:t_self;
+            self.transform = t_transform;
 
             var minMidfre = Datacenter.get("minMidfre");
             var maxMidfre = Datacenter.get("maxMidfre");

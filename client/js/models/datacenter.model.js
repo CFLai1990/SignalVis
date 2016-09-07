@@ -298,7 +298,7 @@
                     self.set("midfreRange", t_fr);
                     self.set("minMidfre",t_fr[0]);
                     self.set("maxMidfre",t_fr[1]);
-                    Config.set("size", v_d.size);
+                    Config.get("pixel").size = v_d.size;
                     Variables.get("filterRanges")["timeDate"] = null;
                     Variables.get("filterRanges")["baud"] = null;
                 }, v_td, {
@@ -500,6 +500,7 @@
             var v_frame = v_opts.frame_num, v_time = v_opts.time, v_scope = v_opts.scope;
             var self = this, v_df = $.Deferred(), v_return = {};
             var t_collection = Config.getData("spectrum");
+            self.setLoading(true);
             // console.time(3);
             if(t_collection){
                 v_return[v_scope] = 1;
@@ -537,23 +538,23 @@
                     }
                     Variables.set("filterData", t_result);
                 }, v_df);
-                $.when(v_df).done(function(){
-                    var v_df1 = $.Deferred();
-                    self.queryFromDB("query", {
-                            condition: {"frameNum": v_frame},
-                            return: {'scope': 1, 'frequency': 1, '_id': 0},
-                        }, function(v_d){
-                            // console.timeEnd(3);
-                            v_callback(v_d);
-                            //handle spectrum data
-                    }, v_df1, {
-                        collection: t_collection,
-                    });
+                var v_df1 = $.Deferred(), v_dfs = [v_df.promise(), v_df1.promise()], vv_d;
+                self.queryFromDB("query", {
+                        condition: {"frameNum": v_frame},
+                        return: {'scope': 1, 'frequency': 1, '_id': 0},
+                    }, function(v_d){vv_d = v_d;}, v_df1, 
+                    {collection: t_collection,
+                });
+                $.whenWithProgress(v_dfs, function(){})
+                .then(function(){
+                    v_callback(vv_d);
+                    self.setLoading(false);
                 });
             }
         },
 
         queryFromDB: function(v_command, v_condition, v_callback, v_deferred, v_extra, v_update){
+            var self = this;
             var t_table = Config.getData("dataTable");
             $.ajax({
                 url: "/query?"+JSON.stringify({
@@ -564,7 +565,7 @@
                     update: v_update,
                 }),
                 success: function(v_data){
-                    console.info("Query Sucess!", v_command, v_condition, v_extra);
+                    console.info("Query Sucess!", v_command, v_condition);
                     if(v_callback) v_callback(v_data);
                     if(v_deferred) v_deferred.resolve();
                 },
@@ -577,14 +578,27 @@
         getBarcharts: function(v_condition, v_df, v_zooming, v_hd){
             var self = this, filterSignals = [], t_list = Config.get("nameList");
             var t_onlyPr = self.get("onlyProjection");
-            var t_return, t_dims;
+            var t_return, t_dims, t_knownCount;
+            if((v_zooming || v_hd) && !t_onlyPr){
+                self.setLoading(true);
+            }
             if(t_onlyPr){
                 t_return = {'_id': 0};
+                t_knownCount = self.get("signalNum");
             }else{
                 t_return = self.getBCAttributes();
             }
             t_dims = self.getDimensions();
             var t_glyphs = self.getGlyphs();
+            var tr, fr, ps, t_pixel = false;
+            if(!v_zooming && !t_onlyPr && Config.get("pixel").size){
+                tr = self.get("timeRange").slice(0);
+                fr = self.get("midfreRange");
+                ps = Config.get("pixel").size;
+                tr[0] = Config.shiftTime(tr[0], true);
+                tr[1] = Config.shiftTime(tr[1], true);
+                t_pixel = true;
+            }
             var t_condition = {
                     condition: v_condition,
                     return: t_return.attrs,
@@ -594,6 +608,11 @@
                     ratio: Config.get("projection")["SampleRate"],
                     zooming: v_zooming,
                     hd: v_hd,
+                    knownCount: t_knownCount,
+                    pixelmap: t_pixel,
+                    timeR: tr,
+                    freR: fr,
+                    pixS: ps,
                 };
             self.queryFromDB("queryBC", t_condition, function(v_data){
                 if(v_zooming){
@@ -613,7 +632,7 @@
                         for(var j in t_data[i]){
                             var t_name = t_names[j], tt_d = t_data[i][j];
                             if(t_name == "firsttime"){
-                                tt_d -= 8 * 3600 * 1000;
+                                tt_d = Config.shiftTime(tt_d, false);
                             }
                             t_d[t_name] = tt_d;
                         }
@@ -621,14 +640,35 @@
                     }
                     Variables.set("filterSignals",filterSignals);
                 }
-                if(v_data.count > 0){
-                    self.updateBarcharts(v_data.barcharts, v_data.range);
-                    self.updateProjection(v_data.projection);
+                if(!t_onlyPr){
+                    self.set("signalNum",v_data.count);
+                    self.trigger("updateFilterCount", v_data.count);
+                    if(v_data.count > 0){
+                        self.updateBarcharts(v_data.barcharts, v_data.range);
+                        self.updateProjection(v_data.projection);
+                    }else{
+                        Variables.trigger("clearFilter");
+                    }
+                    if(t_pixel){
+                        Variables.trigger("updatePixelMap", v_data.pixelmap);
+                        var tt_time = v_data.range["timeDate"];
+                        Variables.get("pixelRanges")["timeRange"] = [
+                            Config.shiftTime(tt_time[0], false),
+                            Config.shiftTime(tt_time[1], false),
+                        ];
+                        Variables.get("pixelRanges")["midfreRange"] = v_data.range["freq"];                        
+                    }else{
+                        Variables.get("pixelRanges")["timeRange"] = null;
+                        Variables.get("pixelRanges")["midfreRange"] = null;
+                    }
                 }else{
-                    Variables.trigger("clearFilter");
+                    if(v_data.count > 0){
+                        self.updateProjection(v_data.projection);
+                    }                    
                 }
-                Datacenter.set("signalNum",v_data.count);
-                self.trigger("updateFilterCount", v_data.count);
+                if((v_zooming || v_hd) && !t_onlyPr){
+                    self.setLoading(false);
+                }
                 Variables.trigger("updateFilter");
             }, v_df, t_return.parameters);
             if(t_onlyPr){
@@ -726,6 +766,21 @@
             var self = this;
             self.set("onlyProjection", true);
             self.queryFunc();
+        },
+
+        setLoading: function(v_loading){
+            if(v_loading){
+                var t_df = 
+                $("#loading").removeClass("hidden").addClass("middle");
+                setTimeout(function(){
+                    $("#loading").addClass("foggy");
+                }, 50);             
+            }else{
+                $("#loading").removeClass("foggy");
+                setTimeout(function(){
+                    $("#loading").removeClass("middle").addClass("hidden");
+                }, 1000);                
+            }
         },
 
         clearAll: function(){

@@ -100,10 +100,20 @@ define([
                         // if(!t_range){
                             switch(i){
                                 case "firsttime":
-                                    t_range = Datacenter.get("timeRange");
+                                    if(!t_range){
+                                        t_range = Variables.get("pixelRanges")["timeRange"];
+                                        if(!t_range){
+                                            t_range = Datacenter.get("timeRange");
+                                        }
+                                    }
                                 break;
                                 case "midfre":
-                                    t_range = Datacenter.get("midfreRange");
+                                    if(!t_range){
+                                        t_range = Variables.get("pixelRanges")["midfreRange"];
+                                        if(!t_range){
+                                            t_range = Datacenter.get("midfreRange");
+                                        }
+                                    }
                                 break;
                                 default:
                                     t_range = Datacenter.get("barcharts")[i];

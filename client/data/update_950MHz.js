@@ -45,6 +45,36 @@ db.getCollection(collection).createIndex({
 	"freq": 1,
 	"timeDate": 1,
 });
+db.getCollection(collection).createIndex({
+	"freq": 1,
+});
+db.getCollection(collection).createIndex({
+	"baud": 1,
+});
+db.getCollection(collection).createIndex({
+	"scope": 1,
+});
+db.getCollection(collection).createIndex({
+	"carriernoise": 1,
+});
+db.getCollection(collection).createIndex({
+	"timeDate": 1,
+});
+db.getCollection(collection).createIndex({
+	"Modulationmode": 1,
+});
+db.getCollection(collection).createIndex({
+	"Modulationrate": 1,
+});
+db.getCollection(collection).createIndex({
+	"CsTran": 1,
+});
+db.getCollection(collection).createIndex({
+	"mask": 1,
+});
+db.getCollection(collection).createIndex({
+	"SignalType": 1,
+});
 print("Index created!");
 var t_attrs = {}, t_id = 0, t_dict = {};
 db.getCollection(collection).find({id:1}).forEach(function(d){
