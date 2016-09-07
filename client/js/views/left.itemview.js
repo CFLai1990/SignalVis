@@ -52,13 +52,10 @@ define([
     		      .range(t_scope?(t_scope.get("xRange")):(t_scopedbm.get("xRange")))
     		      .domain([426,2245]);
 
-            var bandwidth_scale = d3.scale.linear()
-              .range([5,20])
-              .domain(d3.extent(filterData, function(d) { return d.bandwidth; }));
-
-            var noise_scale = d3.scale.linear()
-              .range([5,20])
-              .domain(d3.extent(filterData, function(d) { return d.signalnoise; }));
+            var brush = d3.svg.brush()
+              .x(self.x_line)
+           //   .on("brush", brushmove)
+              .on("brushend", brushend);
 
             specResult.forEach(function(d){
            	   d.scope = scope_scale(d.scope);
@@ -74,16 +71,8 @@ define([
     		      .attr("clip-path", "url(#clip)")
     		      .attr("d", line)
     		      .style('fill','none')
-    		      .style('stroke-width',.5)
-    		      .style("cursor","pointer")
-    		      // .on("mouseover",function(d){
-    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      // 	  // line_showTooltip(x0,y0);
-    		      // })
-    		      // .on("mouseout",function(){
-    		      // 	  line_hideTooltip();
-    		      // });
+    		      .style('stroke-width',1)
+    		      .style("cursor","pointer");
 
     		    self.svg_line.selectAll(".signalPoint")
     		      .data(filterData)
@@ -104,51 +93,101 @@ define([
               })
     		      .attr("cy", function(d){return self.y_line(d.scope);})
     		      .attr("r",2.5)
-    		      .style('stroke-width',.5);
-    		      // .style("cursor","pointer")
+              .style('fill-opacity',.5)
+    		      .style('stroke-width',.5)
+    		      .style("cursor","pointer");
+
+//brush spectrum
+          self.svg_line.append("g")
+              .attr("class", "brush_spectrum")
+              .call(brush)
+              .attr("transform", "translate(0," + self.Height_line + ")")
+            .selectAll('rect')
+               .attr("stroke","#fff")
+               .attr("fill-opacity",.125)
+               .attr('height', 15);
+
+//        function brushmove() {
+//	           var extent = brush.extent();
+//	           points.classed("selected", function(d) {
+//	             is_brushed = extent[0] <= d.index && d.index <= extent[1];
+//	             return is_brushed;
+//	           });
+//        }
+	  	self.svg_line.append('svg:foreignObject')
+				.attr("transform", "translate("+ (self.Width_line-40) + ",-20)")
+			    .attr("width", 50)
+			    .attr("height", 50)
+			    .append("xhtml:body")
+			    .html('<span class="zoombtn btn btn-default btn-xs"><i class="fa fa-compress"></i></span>')
+			    .on('click',function(){
+				    	self.x_line.domain(Datacenter.get("midfreRange"));
+	                transition_data();
+	                reset_axis();
+			    });
+		  
+          function brushend() {
+            self.x_line.domain(brush.extent());
+
+            transition_data();
+            reset_axis();
+
+            d3.select(".brush_spectrum").call(brush.clear());
+          }
+
+          function transition_data() {
+            self.svg_line.select(".line")
+              .datum(specResult)
+            .transition()
+              .duration(500)
+              .attr("d", line);
+              
+			self.svg_line.selectAll(".signalPoint")
+    		      .data(filterData)
+    		      .transition()
+              .duration(500)
+    		      .attr("cx", function(d){ return self.x_line(d.midfre); });
+          }
+
+          function reset_axis() {
+            self.svg_line.transition().duration(500)
+             .select(".x.axis")
+             .call(self.xAxis_line);
+          }
+//brush spectrum END
+
+            // self.svg_line.selectAll(".signalPoint2")
+            //   .data(filterData)
+            //   .enter()
+            //   .append("path")
+            //   .attr("class", "signalPoint2")
+            //   .attr("d", function(d, i){
+            //     console.log(d)
+            //     var x_pos = self.x_line(d.midfre);
+            //     var y_pos = self.y_line(d.scopedbm);
+
+            //     var width_r = bandwidth_scale(d.bandwidth)/2;
+            //     var height_r = noise_scale(d.signalnoise)/2;
+
+            //     return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
+            //   })
+            //   .style("stroke-width", .2)
+            //   .style("stroke", "white")
+            //   .style("fill", "#1d91c0")
+            //   .style('fill-opacity',.5)
+            //   .style("cursor","pointer")
     		      // .on("mouseover",function(d){
-    		      // 	  var x0 = self.x_line.invert(d3.mouse(this)[0]),
-    		      // 		y0 = self.y_line.invert(d3.mouse(this)[1]);
-    		      // 	  line_showTooltip(x0,y0);
+    		      // 	var x0 = self.x_line(d.midfre),
+
+    		      // 		y0 = self.y_line(d.scopedbm),
+
+            //       a0 = d.bandwidth,
+            //       b0 = d.signalnoise;
+    		      // 	line_showTooltip(x0,y0,a0,b0);
     		      // })
     		      // .on("mouseout",function(){
-    		      // 	  line_hideTooltip();
+    		      // 	line_hideTooltip();
     		      // });
-
-            self.svg_line.selectAll(".signalPoint2")
-              .data(filterData)
-              .enter()
-              .append("path")
-              .attr("class", "signalPoint2")
-              .attr("d", function(d, i){
-                if(i == 0){
-                  console.log(self.x_line.domain(), d);
-                }
-                var x_pos = self.x_line(d.midfre);
-                var y_pos = self.y_line(d.scope);
-
-                var width_r = bandwidth_scale(d.bandwidth)/2;
-                var height_r = noise_scale(d.signalnoise)/2;
-
-                return "M "+ (x_pos-width_r) +" " + y_pos + " " + x_pos + " " + (y_pos+height_r) + " " + (x_pos+width_r) +" " + y_pos + " " + x_pos + " " + (y_pos-height_r) + " Z";
-              })
-              .style("stroke-width", .2)
-              .style("stroke", "white")
-              .style("fill", "#1d91c0")
-              .style('fill-opacity',.5)
-              .style("cursor","pointer")
-    		      .on("mouseover",function(d){
-    		      	var x0 = self.x_line(d.midfre),
-
-    		      		y0 = self.y_line(d.scopedbm),
-
-                  a0 = d.bandwidth,
-                  b0 = d.signalnoise;
-    		      	line_showTooltip(x0,y0,a0,b0);
-    		      })
-    		      .on("mouseout",function(){
-    		      	line_hideTooltip();
-    		      });
 
 //时间定位线
             self.timeFocus_line = self.svg_line.append("g")
@@ -200,29 +239,13 @@ define([
                 self.timeFocus_line.select("text").text("中心频率："+x_fre.toFixed(3)+"MHz 功率："+y_scope.toFixed(3)+"dBm");
             }
 //时间定位线 END
-
-        		function line_showTooltip(x,y){
-               var tooltip_scatter = self.svg_line.append("g")
-                  .attr("class", "tooltip_scatter");
-
-               tooltip_scatter.append("text")
-                  .attr("font-size", '13px')
-                  .attr("x", self.Width_line/3)
-                  .attr("y", 10)
-                  .attr("fill","#fff")
-                  .text("中心频率："+ x.toFixed(3) + "MHz 功率：" + y.toFixed(3));// + "dBm 带宽："+a.toFixed(3)+"dB 信噪比："+b.toFixed(3)+"dB");
-            }
-
-         	function line_hideTooltip(){
-              d3.selectAll(".tooltip_scatter").remove();
-            }
         },
 
         transition_data:function(filterSignals)
         {
           var self = this;
               if(filterSignals){
-				          Variables.set("zoominFirsttimeFilterRange",null);
+				  Variables.set("zoominFirsttimeFilterRange",null);
                   Variables.set("zoominMidfreFilterRange",null);
 
                   self.xAxisScale.domain([self.x0,self.x1]);
@@ -260,8 +283,6 @@ define([
                       return self.xAxisScale(d.midfre); })
                     .attr("cy", function(d) { return self.yAxisScale(d.firsttime); })
                     .style('cursor','pointer');
-                    // .on('mouseover',function(d){showTooltip(d,this);})
-                    // .on('mouseout',function(d){hideTooltip(d,this);});
 
              self.mainRegin.transition().duration(500)
                     .select(".x.axis")
@@ -571,11 +592,11 @@ define([
                 self.y_line = d3.scale.linear()
                     .range([self.Height_line, 0]);
 
-                var xAxis_line = d3.svg.axis()
+                self.xAxis_line = d3.svg.axis()
                     .scale(self.x_line)
                     .orient("bottom");
 
-                var yAxis_line = d3.svg.axis()
+                self.yAxis_line = d3.svg.axis()
                     .scale(self.y_line)
                     .orient("left");
 
@@ -593,7 +614,7 @@ define([
                  self.svg_line.append("g")
                       .attr("class", "x axis")
                       .attr("transform", "translate(0," + self.Height_line + ")")
-                      .call(xAxis_line)
+                      .call(self.xAxis_line)
                     .append("text")
                       .attr("dx", self.Width_line)
                       .attr("dy", 27)
@@ -603,7 +624,7 @@ define([
 
                   self.svg_line.append("g")
                       .attr("class", "y axis")
-                      .call(yAxis_line)
+                      .call(self.yAxis_line)
                     .append("text")
             //          .attr("transform", "rotate(-90)")
                       .attr("y", -10)
@@ -746,18 +767,32 @@ define([
                 function brushend() {
                   brushmove();
                   if (brush1.empty() && brush2.empty()) d3.selectAll(".grid").style("opacity", 1);
+                  zoomin();
                 }
 //change opacity when brushing END
 //zoom function
                 function zoomin() {
                     if(self.have_zoomin == 0) {
-                      var extent1 = brush1.extent();
-                          self.x0 = extent1[0],
-                          self.x1 = extent1[1];
-
-                      var extent2 = brush2.extent();
+                    	
+                      if(brush1.empty()) {
+                    	  	self.x0 = minMidfre;
+                    	  	self.x1 = maxMidfre;
+                    	  }
+                	      else {
+                	  	    var extent1 = brush1.extent();
+                        self.x0 = extent1[0],
+                        self.x1 = extent1[1];
+                	  	  }
+                      
+                      if(brush2.empty()) {
+                    		self.y0 = new Date(time_range[0]);
+                    		self.y1 = new Date(time_range[1]);
+                      }
+                      else{
+                      	var extent2 = brush2.extent();
                           self.y0 = extent2[0],
                           self.y1 = extent2[1];
+                      }
 
                       var brushxRange = [];
                             brushxRange.push(self.x0);
@@ -766,24 +801,24 @@ define([
                       var brushyRange = [];
                             brushyRange.push(self.y0.getTime());
                             brushyRange.push(self.y1.getTime());
-
-                      if(brush1.empty()) {
-                        Variables.setFilterRange("freq", null, true);
-                      }
-
-                      else {
+//
+//                    if(brush1.empty()) {
+//                      Variables.setFilterRange("freq", null, true);
+//                    }
+//
+//                    else {
                         Variables.setFilterRange("freq", brushxRange, true);
-                      }
+                  //    }
 
-                      if(brush2.empty()) {
-                        Variables.setFilterRange("timeDate", null, true);
-                      }
-
-                      else {
+//                    if(brush2.empty()) {
+//                      Variables.setFilterRange("timeDate", null, true);
+//                    }
+//
+//                    else {
                         Variables.setFilterRange("timeDate", brushyRange, true);
-                      }
+                    //  }
 
-                      if(!brush1.empty() && !brush2.empty()) {
+                      if(!(brush1.empty() && brush2.empty())) {
                           Variables.set("mode","zoomin");
                           Variables.triggerFilter();
                       }
